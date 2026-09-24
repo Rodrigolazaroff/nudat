@@ -39,6 +39,11 @@ Tipos de la base (con la CLI logueada):
 npx supabase gen types typescript --project-id cqlayawlvfberojffogu > src/lib/database.types.ts
 ```
 
+## Demo
+
+Hay cuentas de prueba con emails `@demo.test` (1 nutri, 2 pacientes con una semana de comidas sin fotos).
+Se crearon a mano en el SQL editor; para borrarlas: `supabase/demo/borrar-demo.sql`.
+
 ## Deploy
 
 - GitHub: https://github.com/Rodrigolazaroff/nudat (branch `main`)
