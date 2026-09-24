@@ -36,14 +36,14 @@ npm run dev                  # http://localhost:3000
 Tipos de la base (con la CLI logueada):
 
 ```bash
-npx supabase gen types typescript --project-id pddrsjlkothxkchhphgf > src/lib/database.types.ts
+npx supabase gen types typescript --project-id cqlayawlvfberojffogu > src/lib/database.types.ts
 ```
 
 ## Deploy
 
 - GitHub: https://github.com/Rodrigolazaroff/nudat (branch `main`)
 - Vercel: https://nudat.vercel.app — deploy automático al pushear a `main`. El framework está fijado en `vercel.json` (el proyecto se creó con el repo vacío y Vercel había quedado en "Other").
-- Supabase: proyecto `pddrsjlkothxkchhphgf` (org "rodrigo nahuel lazaroff", plan Free, región us-west-2).
+- Supabase: proyecto `nudat` (`cqlayawlvfberojffogu`, org "rodrigo nahuel lazaroff", plan Free, región sa-east-1 São Paulo). Funciones de Vercel en `gru1` (vercel.json) para estar al lado de la base.
   - **Las migraciones se aplican solas**: la integración GitHub de Supabase corre `supabase/migrations/` contra producción en cada push a `main`. Nunca editar una migración ya pusheada: crear una nueva (`npx supabase migration new <nombre>`). No aplicar migraciones por otro camino (MCP, SQL editor) porque desincroniza el historial.
-- Variables en Vercel: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
+- Variables en Vercel: las sincroniza la integración Supabase↔Vercel (solo con acceso al proyecto nudat). La app usa `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
 - En Supabase → Authentication → URL Configuration: Site URL `https://nudat.vercel.app` y redirect URLs para `http://localhost:3000/**` y `https://nudat.vercel.app/**`.
