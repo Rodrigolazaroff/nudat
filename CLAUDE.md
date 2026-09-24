@@ -33,18 +33,17 @@ npm install
 npm run dev                  # http://localhost:3000
 ```
 
-Migraciones con la CLI (`npx supabase`):
+Tipos de la base (con la CLI logueada):
 
 ```bash
-npx supabase login
-npx supabase link --project-ref <ref>
-npx supabase db push
-npx supabase gen types typescript --linked > src/lib/database.types.ts
+npx supabase gen types typescript --project-id pddrsjlkothxkchhphgf > src/lib/database.types.ts
 ```
 
 ## Deploy
 
 - GitHub: https://github.com/Rodrigolazaroff/nudat (branch `main`)
-- Vercel: https://nudat.vercel.app — deploy automático al pushear a `main`.
+- Vercel: https://nudat.vercel.app — deploy automático al pushear a `main`. El framework está fijado en `vercel.json` (el proyecto se creó con el repo vacío y Vercel había quedado en "Other").
+- Supabase: proyecto `pddrsjlkothxkchhphgf` (org "rodrigo nahuel lazaroff", plan Free, región us-west-2).
+  - **Las migraciones se aplican solas**: la integración GitHub de Supabase corre `supabase/migrations/` contra producción en cada push a `main`. Nunca editar una migración ya pusheada: crear una nueva (`npx supabase migration new <nombre>`). No aplicar migraciones por otro camino (MCP, SQL editor) porque desincroniza el historial.
 - Variables en Vercel: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
 - En Supabase → Authentication → URL Configuration: Site URL `https://nudat.vercel.app` y redirect URLs para `http://localhost:3000/**` y `https://nudat.vercel.app/**`.

@@ -107,6 +107,10 @@ begin
 end;
 $$;
 
+-- Postgres otorga EXECUTE a PUBLIC en toda función nueva por default; esta
+-- solo la tiene que disparar el trigger, nunca se llama a mano por RPC.
+revoke execute on function privado.tocar_updated_at() from public, anon, authenticated;
+
 create trigger comidas_updated_at
   before update on public.comidas
   for each row execute function privado.tocar_updated_at();
@@ -282,6 +286,10 @@ create policy "fotos: ver propias o de mis pacientes"
 create policy "fotos: paciente reemplaza las suyas"
   on storage.objects for update to authenticated
   using (
+    bucket_id = 'fotos-comidas'
+    and (storage.foldername(name))[1] = (select auth.uid())::text
+  )
+  with check (
     bucket_id = 'fotos-comidas'
     and (storage.foldername(name))[1] = (select auth.uid())::text
   );
