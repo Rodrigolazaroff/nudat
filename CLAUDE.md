@@ -18,7 +18,7 @@ en PDF (por ejemplo, para llevárselo a su nutri).
 - `usuario_id` lo pone la base (`default auth.uid()`); desde la app solo se escriben las columnas con grant (fecha, hora, tipo, descripción, foto).
 - Bebidas: `tipo = 'bebida'`. No cuentan para horarios de comida (primera/última del día, ayuno) en `src/lib/resumen.ts`.
 - Fotos: bucket privado `fotos-comidas`, ruta `{usuario_id}/{archivo}`, se muestran con URL firmada. Se comprimen en el cliente antes de subir.
-- Rutas: `(app)/(angosto)` = pantallas del celu (`/` Hoy, `/nueva`, `/comida/[id]`, `/historial`); `(app)/semana` = ancho, para tabla e impresión.
+- Rutas: `(app)/(angosto)` = pantallas del celu (`/` Hoy, `/nueva`, `/comida/[id]`, `/historial`); `(app)/semana` = ancho, para tabla e impresión. `/privacidad` es pública (la pide Google para el OAuth).
 
 ## Stack
 

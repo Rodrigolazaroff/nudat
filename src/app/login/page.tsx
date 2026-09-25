@@ -36,6 +36,10 @@ export default async function LoginPage({ searchParams }: Props) {
           <Link href="/registro" className={clases.link}>
             Creá una
           </Link>
+          <br />
+          <Link href="/privacidad" className={`${clases.link} mt-3 inline-block`}>
+            Privacidad
+          </Link>
         </p>
       }
     >
