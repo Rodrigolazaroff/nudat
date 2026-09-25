@@ -4,7 +4,7 @@
 //   Hay que llamarla con el archivo ORIGINAL: comprimirImagen() devuelve un JPEG sin metadatos.
 // - comprimirImagen(): JPEG liviano para subir (máx. 1600 px del lado largo, calidad 0.8).
 //   Al recomprimir también se descartan el GPS y el resto del EXIF de la foto original.
-// - rutaFoto(): ruta en el bucket, `{paciente_id}/{uuid}.jpg`.
+// - rutaFoto(): ruta en el bucket, `{usuario_id}/{uuid}.jpg`.
 
 import type * as Exifr from "exifr";
 // Bundle "mini" de exifr: solo JPEG + TIFF/EXIF, sin diccionarios (~8 kB gzip). Sin
@@ -173,9 +173,9 @@ export async function comprimirImagen(
   }
 }
 
-/** Ruta en el bucket de fotos: `{pacienteId}/{uuid}.jpg`. */
-export function rutaFoto(pacienteId: string): string {
-  return `${pacienteId}/${uuid()}.jpg`;
+/** Ruta en el bucket de fotos: `{usuarioId}/{uuid}.jpg`. */
+export function rutaFoto(usuarioId: string): string {
+  return `${usuarioId}/${uuid()}.jpg`;
 }
 
 // crypto.randomUUID solo existe en contextos seguros (https o localhost). Probando desde el

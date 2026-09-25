@@ -26,7 +26,6 @@ export async function ingresar(_previo: EstadoLogin, formData: FormData): Promis
     return { error: mensajeLogin(error), email };
   }
 
-  // "/" redirige a /nutri o /paciente según el rol.
   redirect("/");
 }
 
@@ -37,7 +36,7 @@ function mensajeLogin(error: Parameters<typeof mensajeComun>[0]): string {
     case "email_not_confirmed":
       return "Todavía no confirmaste tu email. Buscá el mail que te mandamos (fijate también en spam).";
     case "user_banned":
-      return "Esta cuenta está suspendida. Escribile a tu nutri.";
+      return "Esta cuenta está suspendida.";
   }
 
   const comun = mensajeComun(error);

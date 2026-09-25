@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState } from "react";
 import { BotonEnviar } from "@/app/auth/_compartido/boton-enviar";
+import { BotonGoogle, SeparadorO } from "@/app/auth/_compartido/boton-google";
 import { CampoClave } from "@/app/auth/_compartido/campo-clave";
 import {
   Campo,
@@ -16,17 +17,9 @@ import {
 import { CLAVE_MAX, CLAVE_MIN, NOMBRE_MAX } from "@/app/auth/_compartido/validacion";
 import { registrarse, type EstadoRegistro } from "./actions";
 
-export type InvitacionVigente = {
-  token: string;
-  nutriNombre: string;
-  email: string | null;
-  nombre: string | null;
-};
-
 const inicial: EstadoRegistro = {};
 
-// Sin `invitacion` es el registro de nutricionista.
-export function FormRegistro({ invitacion }: { invitacion?: InvitacionVigente }) {
+export function FormRegistro() {
   const [estado, accion] = useActionState(registrarse, inicial);
 
   if (estado.emailPorConfirmar) {
@@ -55,73 +48,43 @@ export function FormRegistro({ invitacion }: { invitacion?: InvitacionVigente })
   }
 
   const valores = estado.valores;
-  const pie = (
-    <p>
-      ¿Ya tenés cuenta?{" "}
-      <Link href="/login" className={clases.link}>
-        Ingresá
-      </Link>
-    </p>
-  );
 
   return (
     <PantallaAuth
-      titulo={invitacion ? "Creá tu cuenta" : "Registro de nutricionista"}
-      bajada={
-        invitacion ? undefined : (
-          <p>
-            Solo para nutricionistas con acceso habilitado. Si sos paciente, pedile el link
-            de invitación a tu nutri.
-          </p>
-        )
+      titulo="Creá tu cuenta"
+      bajada={<p>Anotá lo que comés y tomás cada día, con foto y horario.</p>}
+      pie={
+        <p>
+          ¿Ya tenés cuenta?{" "}
+          <Link href="/login" className={clases.link}>
+            Ingresá
+          </Link>
+        </p>
       }
-      pie={pie}
     >
-      {invitacion ? (
-        <div className="rounded-2xl bg-primario-suave p-4">
-          <p className="text-sm text-tinta-suave">Te invitó</p>
-          <p className="text-lg font-semibold text-primario">{invitacion.nutriNombre}</p>
-          <p className="mt-1 text-sm text-tinta">
-            para que registres tus comidas en nudat.
-          </p>
-        </div>
-      ) : null}
+      <BotonGoogle />
+      <SeparadorO />
 
       <Tarjeta>
         <form action={accion} className="flex flex-col gap-4">
-          {invitacion ? <input type="hidden" name="invitacion" value={invitacion.token} /> : null}
-
           <Campo
             name="nombre"
-            etiqueta={invitacion ? "Tu nombre" : "Nombre y apellido"}
-            ayuda={invitacion ? undefined : "Así te van a ver tus pacientes."}
+            etiqueta="Tu nombre"
             autoComplete="name"
             autoCapitalize="words"
             maxLength={NOMBRE_MAX}
             required
-            defaultValue={valores?.nombre ?? invitacion?.nombre ?? ""}
+            defaultValue={valores?.nombre ?? ""}
           />
 
-          {invitacion?.email ? (
-            <Campo
-              name="email"
-              etiqueta="Email"
-              ayuda="Es el email que cargó tu nutri en la invitación."
-              autoComplete="email"
-              readOnly
-              defaultValue={invitacion.email}
-              {...propsEmail}
-            />
-          ) : (
-            <Campo
-              name="email"
-              etiqueta="Email"
-              autoComplete="email"
-              required
-              defaultValue={valores?.email}
-              {...propsEmail}
-            />
-          )}
+          <Campo
+            name="email"
+            etiqueta="Email"
+            autoComplete="email"
+            required
+            defaultValue={valores?.email}
+            {...propsEmail}
+          />
 
           <CampoClave
             name="password"
@@ -132,26 +95,6 @@ export function FormRegistro({ invitacion }: { invitacion?: InvitacionVigente })
             maxLength={CLAVE_MAX}
             required
           />
-
-          {invitacion ? (
-            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-borde p-4">
-              <input
-                type="checkbox"
-                name="consentimiento"
-                required
-                defaultChecked={valores?.consentimiento ?? false}
-                className="mt-0.5 size-5 shrink-0 accent-primario"
-              />
-              <span className="text-sm">
-                <span className="font-medium">
-                  Acepto que mi nutricionista vea las comidas y fotos que cargue.
-                </span>{" "}
-                <span className="text-tinta-suave">
-                  Son datos de salud: solo los ven vos y tu nutri.
-                </span>
-              </span>
-            </label>
-          ) : null}
 
           {estado.error ? <MensajeError>{estado.error}</MensajeError> : null}
 

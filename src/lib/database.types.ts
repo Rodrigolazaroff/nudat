@@ -15,9 +15,7 @@ export type Database = {
       perfiles: {
         Row: {
           id: string;
-          rol: Database["public"]["Enums"]["rol"];
           nombre: string;
-          nutri_id: string | null;
           created_at: string;
         };
         Insert: never;
@@ -26,29 +24,10 @@ export type Database = {
         };
         Relationships: [];
       };
-      invitaciones: {
-        Row: {
-          id: string;
-          nutri_id: string;
-          token: string;
-          email: string | null;
-          nombre: string | null;
-          expira_en: string;
-          usada_en: string | null;
-          paciente_id: string | null;
-          created_at: string;
-        };
-        Insert: {
-          email?: string | null;
-          nombre?: string | null;
-        };
-        Update: never;
-        Relationships: [];
-      };
       comidas: {
         Row: {
           id: string;
-          paciente_id: string;
+          usuario_id: string;
           fecha: string; // YYYY-MM-DD
           hora: string; // HH:MM:SS
           tipo: Database["public"]["Enums"]["tipo_comida"];
@@ -75,32 +54,21 @@ export type Database = {
       };
     };
     Views: { [_ in never]: never };
-    Functions: {
-      ver_invitacion: {
-        Args: { p_token: string };
-        Returns: {
-          nutri_nombre: string;
-          email: string | null;
-          nombre: string | null;
-        }[];
-      };
-    };
+    Functions: { [_ in never]: never };
     Enums: {
-      rol: "nutri" | "paciente";
       tipo_comida:
         | "desayuno"
         | "media_manana"
         | "almuerzo"
         | "merienda"
         | "cena"
-        | "colacion";
+        | "colacion"
+        | "bebida";
     };
     CompositeTypes: { [_ in never]: never };
   };
 };
 
 export type Perfil = Database["public"]["Tables"]["perfiles"]["Row"];
-export type Invitacion = Database["public"]["Tables"]["invitaciones"]["Row"];
 export type Comida = Database["public"]["Tables"]["comidas"]["Row"];
 export type TipoComida = Database["public"]["Enums"]["tipo_comida"];
-export type Rol = Database["public"]["Enums"]["rol"];

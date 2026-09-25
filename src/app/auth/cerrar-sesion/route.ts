@@ -11,7 +11,7 @@ import { rutaInterna } from "../_compartido/ruta-interna";
 //   </form>
 //
 // Redirige a /login. Opcional: un <input type="hidden" name="next" value="/ruta">
-// para volver a otra ruta interna (lo usa /registro para seguir con una invitación).
+// para volver a otra ruta interna (lo usa /registro para volver al formulario).
 // Solo POST: un GET se podría disparar desde un <img> o un prefetch.
 
 export async function POST(request: NextRequest) {
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
   }
 
   const supabase = await createClient();
-  // "local": cierra solo este dispositivo, no el celular de la paciente si cierra en la compu.
+  // "local": cierra solo este dispositivo, no el celular si cierra en la compu.
   const { error } = await supabase.auth.signOut({ scope: "local" });
 
   if (error) {

@@ -4,7 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { registrarError } from "../_compartido/errores";
 import { rutaInterna } from "../_compartido/ruta-interna";
 
-// Destino de los links de los mails de Supabase (confirmar cuenta, recuperar contraseña).
+// Destino de los links de los mails de Supabase (confirmar cuenta, recuperar contraseña)
+// y de la vuelta del login con Google (?code=...).
 //
 // Soporta los dos formatos:
 //  - ?token_hash=...&type=...  → plantillas de mail propias (funciona aunque el mail
@@ -13,7 +14,7 @@ import { rutaInterna } from "../_compartido/ruta-interna";
 //    mismo navegador donde se pidió, porque necesita la cookie del code verifier).
 //
 // Opcional: ?next=/ruta-interna. Si no viene, recovery va a /cuenta/nueva-clave y el
-// resto a / (que redirige según el rol).
+// resto a / (la pantalla Hoy).
 
 const TIPOS: readonly EmailOtpType[] = [
   "signup",
@@ -36,6 +37,12 @@ export async function GET(request: NextRequest) {
 
   const destino =
     rutaInterna(params.get("next")) ?? (tipo === "recovery" ? "/cuenta/nueva-clave" : "/");
+
+  // Google (u otro proveedor) volvió con error: la persona canceló o falló el consentimiento.
+  if (params.get("error")) {
+    console.error("[auth/confirm] oauth:", params.get("error"), params.get("error_description"));
+    return redirigir("/login?error=google");
+  }
 
   const supabase = await createClient();
   let ok = false;

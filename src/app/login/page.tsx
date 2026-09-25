@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { BotonGoogle, SeparadorO } from "@/app/auth/_compartido/boton-google";
 import { MensajeError, PantallaAuth, Tarjeta, clases } from "@/app/auth/_compartido/ui";
 import { FormLogin } from "./form-login";
 
@@ -28,24 +29,21 @@ export default async function LoginPage({ searchParams }: Props) {
   return (
     <PantallaAuth
       titulo="Ingresá a tu cuenta"
-      bajada="Tu registro de comidas, compartido con tu nutri."
+      bajada="Tu registro de comidas y bebidas del día."
       pie={
-        <>
-          <p>¿No tenés cuenta? Pedile el link de invitación a tu nutri.</p>
-          <p className="mt-3">
-            ¿Sos nutricionista y ya te habilitaron?{" "}
-            <Link href="/registro" className={clases.link}>
-              Creá tu cuenta
-            </Link>
-          </p>
-        </>
+        <p>
+          ¿No tenés cuenta?{" "}
+          <Link href="/registro" className={clases.link}>
+            Creá una
+          </Link>
+        </p>
       }
     >
       {codigo === "sin-perfil" ? (
         <MensajeError>
           <p>
-            Tu cuenta no tiene un perfil de nudat. Escribile a tu nutri o ingresá con
-            otra cuenta.
+            No pudimos cargar tu perfil. Cerrá sesión y volvé a ingresar; si sigue
+            pasando, probá con otra cuenta.
           </p>
           {conSesion ? (
             <form action="/auth/cerrar-sesion" method="post" className="mt-1">
@@ -75,6 +73,15 @@ export default async function LoginPage({ searchParams }: Props) {
           </p>
         </MensajeError>
       ) : null}
+
+      {codigo === "google" ? (
+        <MensajeError>
+          <p>No pudimos ingresar con Google. Probá de nuevo o usá tu email.</p>
+        </MensajeError>
+      ) : null}
+
+      <BotonGoogle />
+      <SeparadorO />
 
       <Tarjeta>
         <FormLogin />

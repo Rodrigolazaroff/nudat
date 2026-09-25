@@ -2,28 +2,32 @@
 
 # nudat
 
-Registro alimentario para pacientes de nutricionistas. El paciente carga cada comida
-(tipo, fecha, hora, foto y descripción) y su nutri ve lo cargado en una grilla semanal
-con un resumen.
+Registro alimentario personal. Cada persona crea su cuenta (email + contraseña o Google) y
+carga lo que come y toma en el día: tipo (desayuno … colación, o bebida), fecha, hora, foto y
+descripción. En `/semana` ve una grilla y un resumen automático que puede imprimir o guardar
+en PDF (por ejemplo, para llevárselo a su nutri).
+
+> Historia: arrancó como app nutri ↔ paciente (roles e invitaciones). Se descartó en la
+> migración `20260924120000_app_personal.sql`; no queda nada de ese modelo.
 
 ## Modelo
 
-- Roles: `nutri` y `paciente`. Una nutri tiene N pacientes; cada paciente tiene una sola nutri (`perfiles.nutri_id`).
-- **La seguridad está en la base (RLS), no en la UI.** Una nutri solo ve perfiles, comidas y fotos de sus pacientes. Todo cambio de esquema va con sus políticas.
-- Alta solo por invitación: la nutri genera un link (`invitaciones.token`) y el paciente se registra con `?invitacion=<token>`. El trigger `privado.crear_perfil` crea el perfil y rechaza cualquier registro sin invitación.
-- Nutris: se habilitan a mano cargando su email en `privado.nutris_habilitadas` (SQL editor) y después se registran normalmente.
-- Nadie puede cambiarse `rol` ni `nutri_id` desde la app (grants por columna).
-- Fotos: bucket privado `fotos-comidas`, ruta `{paciente_id}/{archivo}`, se muestran con URL firmada. Se comprimen en el cliente antes de subir.
-- Funciones auxiliares de RLS en el schema `privado` (no expuesto por la API).
+- Tablas: `perfiles` (id = usuario de auth, nombre) y `comidas` (`usuario_id`, fecha, hora, tipo, descripción, `foto_path`).
+- **La seguridad está en la base (RLS), no en la UI.** Cada usuario ve y maneja solo su perfil, sus comidas y sus fotos. Todo cambio de esquema va con sus políticas.
+- Alta abierta: el trigger `privado.crear_perfil` crea el perfil de todo usuario nuevo (nombre desde `nombre` o, con Google, `full_name`/`name`). Nunca bloquea el alta.
+- `usuario_id` lo pone la base (`default auth.uid()`); desde la app solo se escriben las columnas con grant (fecha, hora, tipo, descripción, foto).
+- Bebidas: `tipo = 'bebida'`. No cuentan para horarios de comida (primera/última del día, ayuno) en `src/lib/resumen.ts`.
+- Fotos: bucket privado `fotos-comidas`, ruta `{usuario_id}/{archivo}`, se muestran con URL firmada. Se comprimen en el cliente antes de subir.
+- Rutas: `(app)/(angosto)` = pantallas del celu (`/` Hoy, `/nueva`, `/comida/[id]`, `/historial`); `(app)/semana` = ancho, para tabla e impresión.
 
 ## Stack
 
 - Next.js 16 (App Router, `src/`), React 19, TypeScript, Tailwind 4.
   - Ojo: en Next 16 `middleware` pasó a llamarse `proxy` → `src/proxy.ts`.
-- Supabase: Auth (email + contraseña), Postgres con RLS, Storage.
+- Supabase: Auth (email + contraseña y Google OAuth), Postgres con RLS, Storage.
   - Clientes en `src/lib/supabase/` (`client.ts` navegador, `server.ts` server, `proxy.ts` refresco de sesión).
   - Migraciones en `supabase/migrations/`.
-- UI en español (Argentina). Pensada mobile-first: los pacientes cargan desde el celular.
+- UI en español (Argentina). Pensada mobile-first: se carga desde el celular.
 
 ## Levantar
 
@@ -41,7 +45,7 @@ npx supabase gen types typescript --project-id cqlayawlvfberojffogu > src/lib/da
 
 ## Demo
 
-Hay cuentas de prueba con emails `@demo.test` (1 nutri, 2 pacientes con una semana de comidas sin fotos).
+Hay cuentas de prueba con emails `@demo.test`: `martin@` (una semana de comidas sin fotos), `sofia@` (2 días) y `nutri@` (vacía, quedó del modelo viejo).
 Se crearon a mano en el SQL editor; para borrarlas: `supabase/demo/borrar-demo.sql`.
 
 ## Deploy

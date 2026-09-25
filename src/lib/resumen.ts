@@ -1,7 +1,7 @@
 import type { Comida, TipoComida } from "@/lib/database.types";
-import { TIPOS_COMIDA } from "@/lib/comidas";
+import { TIPOS_COMIDA, esBebida } from "@/lib/comidas";
 
-// Resumen automático del registro alimentario de un paciente en un período.
+// Resumen automático del registro alimentario de una persona en un período.
 //
 // Todo es puro: no lee la hora actual ni la base, todo entra por parámetro.
 // Fechas como "YYYY-MM-DD" y horas como "HH:MM" o "HH:MM:SS" (lo que guarda Postgres),
@@ -266,10 +266,14 @@ export function calcularResumen(
     if (faltan.length > 0) salteadasPorDia.push({ fecha: dia.fecha, faltan });
   }
 
+  // Horarios de comida: sin bebidas sueltas (un vaso de agua no corta el ayuno).
+  const comidasDe = (dia: (typeof dias)[number]) =>
+    dia.comidas.filter((u) => !esBebida(u.comida.tipo));
+
   const ayunos: number[] = [];
   for (let i = 0; i + 1 < dias.length; i++) {
-    const hoy = dias[i].comidas;
-    const manana = dias[i + 1].comidas;
+    const hoy = comidasDe(dias[i]);
+    const manana = comidasDe(dias[i + 1]);
     if (hoy.length === 0 || manana.length === 0) continue;
     ayunos.push(MINUTOS_DIA + manana[0].minutos - hoy[hoy.length - 1].minutos);
   }
@@ -302,7 +306,11 @@ export function calcularResumen(
       cantidad: cenas.filter((u) => u.minutos > MINUTOS_CENA_TARDE).length,
       totalCenas: cenas.length,
     },
-    primeraComida: estadistica(conRegistro.map((d) => d.comidas[0].minutos)),
-    ultimaComida: estadistica(terminados.map((d) => d.comidas[d.comidas.length - 1].minutos)),
+    primeraComida: estadistica(
+      conRegistro.map(comidasDe).filter((c) => c.length > 0).map((c) => c[0].minutos),
+    ),
+    ultimaComida: estadistica(
+      terminados.map(comidasDe).filter((c) => c.length > 0).map((c) => c[c.length - 1].minutos),
+    ),
   };
 }

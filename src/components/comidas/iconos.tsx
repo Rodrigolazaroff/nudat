@@ -1,0 +1,108 @@
+import type { SVGProps } from "react";
+
+// Íconos de trazo (24×24, currentColor). Decorativos: siempre acompañan un texto o un aria-label.
+function Icono({ children, className = "size-6", ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+      className={className}
+      {...props}
+    >
+      {children}
+    </svg>
+  );
+}
+
+type P = SVGProps<SVGSVGElement>;
+
+export const IconoCamara = (p: P) => (
+  <Icono {...p}>
+    <path d="M14.5 4h-5L7.5 6.5H5A2 2 0 0 0 3 8.5v9A2 2 0 0 0 5 19.5h14a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-2.5z" />
+    <circle cx="12" cy="13" r="3.5" />
+  </Icono>
+);
+
+export const IconoGaleria = (p: P) => (
+  <Icono {...p}>
+    <rect x="3" y="3.5" width="18" height="17" rx="2" />
+    <circle cx="9" cy="9" r="1.8" />
+    <path d="m21 15.5-4.5-4.5L6 20.5" />
+  </Icono>
+);
+
+export const IconoPlato = (p: P) => (
+  <Icono {...p}>
+    <circle cx="12" cy="12" r="8.5" />
+    <circle cx="12" cy="12" r="4.5" />
+  </Icono>
+);
+
+export const IconoIzquierda = (p: P) => (
+  <Icono {...p}>
+    <path d="m15 18-6-6 6-6" />
+  </Icono>
+);
+
+export const IconoDerecha = (p: P) => (
+  <Icono {...p}>
+    <path d="m9 18 6-6-6-6" />
+  </Icono>
+);
+
+export const IconoVolver = (p: P) => (
+  <Icono {...p}>
+    <path d="M19 12H5m6-6-6 6 6 6" />
+  </Icono>
+);
+
+export const IconoMas = (p: P) => (
+  <Icono {...p}>
+    <path d="M12 5v14M5 12h14" />
+  </Icono>
+);
+
+export const IconoCerrar = (p: P) => (
+  <Icono {...p}>
+    <path d="M18 6 6 18M6 6l12 12" />
+  </Icono>
+);
+
+export const IconoHoy = (p: P) => (
+  <Icono {...p}>
+    <rect x="3.5" y="5" width="17" height="15.5" rx="2" />
+    <path d="M3.5 10h17M8 3v4m8-4v4" />
+    <rect x="7.5" y="13" width="4" height="4" rx="0.5" />
+  </Icono>
+);
+
+export const IconoHistorial = (p: P) => (
+  <Icono {...p}>
+    <path d="M3.5 12a8.5 8.5 0 1 0 2.5-6" />
+    <path d="M3.5 4v4h4" />
+    <path d="M12 7.5V12l3 2" />
+  </Icono>
+);
+
+export const IconoReloj = (p: P) => (
+  <Icono {...p}>
+    <circle cx="12" cy="12" r="8.5" />
+    <path d="M12 7.5V12l3 2" />
+  </Icono>
+);
+
+// Barras: el resumen de la semana.
+export const IconoSemana = (p: P) => (
+  <Icono {...p}>
+    <path d="M4 20h16" />
+    <path d="M7 16v-5" />
+    <path d="M12 16V7" />
+    <path d="M17 16v-3" />
+  </Icono>
+);

@@ -2,7 +2,7 @@ import type { TipoComida } from "@/lib/database.types";
 
 export const BUCKET_FOTOS = "fotos-comidas";
 
-// En orden del día.
+// En orden del día. "bebida" va al final: es una bebida suelta, a cualquier hora.
 export const TIPOS_COMIDA: { valor: TipoComida; etiqueta: string }[] = [
   { valor: "desayuno", etiqueta: "Desayuno" },
   { valor: "media_manana", etiqueta: "Media mañana" },
@@ -10,13 +10,19 @@ export const TIPOS_COMIDA: { valor: TipoComida; etiqueta: string }[] = [
   { valor: "merienda", etiqueta: "Merienda" },
   { valor: "cena", etiqueta: "Cena" },
   { valor: "colacion", etiqueta: "Colación" },
+  { valor: "bebida", etiqueta: "Bebida" },
 ];
+
+// Las bebidas no cuentan para los horarios de comida (primera/última del día, ayuno).
+export function esBebida(tipo: TipoComida) {
+  return tipo === "bebida";
+}
 
 export function etiquetaTipo(tipo: TipoComida) {
   return TIPOS_COMIDA.find((t) => t.valor === tipo)?.etiqueta ?? tipo;
 }
 
-// Sugerencia según la hora (HH:MM). Siempre editable por el paciente.
+// Sugerencia según la hora (HH:MM). Nunca sugiere "bebida". Siempre editable.
 export function sugerirTipo(hora: string): TipoComida {
   const h = Number(hora.slice(0, 2));
   if (h >= 5 && h < 10) return "desayuno";

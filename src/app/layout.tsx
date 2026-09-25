@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     template: "%s · nudat",
   },
   description:
-    "Registro alimentario: cargá tus comidas desde el celular y tu nutricionista las ve.",
+    "Tu registro alimentario: cargá lo que comés y tomás cada día, con foto y horario.",
   applicationName: "nudat",
 };
 
