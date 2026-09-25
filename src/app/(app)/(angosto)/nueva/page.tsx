@@ -5,7 +5,7 @@ import { fechaDeParam } from "@/components/comidas/fechas";
 import { EncabezadoFormulario } from "@/components/comidas/encabezado-formulario";
 import { FormularioComida } from "@/components/comidas/formulario-comida";
 
-export const metadata: Metadata = { title: "Nuevo registro · nudat" };
+export const metadata: Metadata = { title: "Nuevo registro" };
 
 // Envoltorio de servidor: exige sesión y le pasa al formulario (client component) el id del
 // usuario para armar la ruta de la foto, sin tener que pedirle el usuario a Supabase Auth.

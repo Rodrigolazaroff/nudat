@@ -314,3 +314,56 @@ export function calcularResumen(
     ),
   };
 }
+
+// ─── Constancia ───────────────────────────────────────────────────────
+
+export type RegistrosDia = {
+  fecha: string;
+  /** Todo lo cargado ese día alimentario (comidas + bebidas). */
+  total: number;
+  comidas: number;
+  bebidas: number;
+};
+
+/** Cuántos registros tiene cada día alimentario del período (también los vacíos). */
+export function registrosPorDia(
+  comidas: readonly (ConFechaHora & { tipo: TipoComida })[],
+  desde: string,
+  hasta: string,
+): RegistrosDia[] {
+  return ubicarComidas(comidas, desde, hasta).map(({ fecha, comidas: delDia }) => {
+    const bebidas = delDia.filter((u) => esBebida(u.comida.tipo)).length;
+    return { fecha, total: delDia.length, comidas: delDia.length - bebidas, bebidas };
+  });
+}
+
+export type Racha = {
+  /** Días alimentarios seguidos con al menos un registro (comida o bebida). */
+  dias: number;
+  /** true si hoy ya tiene registros; si no, la racha se cuenta hasta ayer. */
+  incluyeHoy: boolean;
+};
+
+/**
+ * Racha actual de días seguidos con algo cargado, terminando hoy.
+ * Hoy todavía no terminó: si está vacío no corta la racha, se cuenta hasta ayer.
+ * Solo ve las comidas que recibe: si la racha llega al principio de lo que se
+ * pidió a la base, podría ser más larga.
+ */
+export function rachaActual(comidas: readonly ConFechaHora[], hoy: string): Racha {
+  if (!esFechaValida(hoy)) return { dias: 0, incluyeHoy: false };
+  const conRegistro = new Set<string>();
+  for (const c of comidas) {
+    const lugar = diaAlimentario(c.fecha, c.hora);
+    if (lugar) conRegistro.add(lugar.dia);
+  }
+
+  const incluyeHoy = conRegistro.has(hoy);
+  let dia = incluyeHoy ? hoy : sumarDias(hoy, -1);
+  let dias = 0;
+  while (conRegistro.has(dia)) {
+    dias++;
+    dia = sumarDias(dia, -1);
+  }
+  return { dias, incluyeHoy };
+}

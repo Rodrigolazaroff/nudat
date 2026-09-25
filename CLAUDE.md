@@ -18,7 +18,7 @@ en PDF (por ejemplo, para llevárselo a su nutri).
 - `usuario_id` lo pone la base (`default auth.uid()`); desde la app solo se escriben las columnas con grant (fecha, hora, tipo, descripción, foto).
 - Bebidas: `tipo = 'bebida'`. No cuentan para horarios de comida (primera/última del día, ayuno) en `src/lib/resumen.ts`.
 - Fotos: bucket privado `fotos-comidas`, ruta `{usuario_id}/{archivo}`, se muestran con URL firmada. Se comprimen en el cliente antes de subir.
-- Rutas: `(app)/(angosto)` = pantallas del celu (`/` Hoy, `/nueva`, `/comida/[id]`, `/historial`); `(app)/semana` = ancho, para tabla e impresión. `/privacidad` es pública (la pide Google para el OAuth).
+- Rutas: `(app)/(angosto)` = pantallas del celu (`/` Hoy, `/resumen` dashboard de 7/30 días, `/nueva`, `/comida/[id]`, `/historial`); `(app)/semana` = ancho, para tabla e impresión. `/privacidad` es pública (la pide Google para el OAuth).
 
 ## Stack
 
@@ -28,6 +28,8 @@ en PDF (por ejemplo, para llevárselo a su nutri).
   - Clientes en `src/lib/supabase/` (`client.ts` navegador, `server.ts` server, `proxy.ts` refresco de sesión).
   - Migraciones en `supabase/migrations/`.
 - UI en español (Argentina). Pensada mobile-first: se carga desde el celular.
+- Logo: `src/components/logo.tsx` (cuaderno con brote); íconos en `src/app/icon.svg`, `apple-icon.png` y `public/icon-*.png`.
+- PWA instalable: `src/app/manifest.ts` + tarjeta `src/components/instalar-app.tsx` en Hoy (`beforeinstallprompt`; sin service worker, no hace falta en Chrome ≥ 108).
 
 ## Levantar
 
@@ -35,6 +37,7 @@ en PDF (por ejemplo, para llevárselo a su nutri).
 cp .env.example .env.local   # completar URL y publishable key de Supabase
 npm install
 npm run dev                  # http://localhost:3000
+npm test                     # tests de src/lib (runner de Node, sin dependencias)
 ```
 
 Tipos de la base (con la CLI logueada):

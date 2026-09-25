@@ -6,6 +6,7 @@ import { hoyISO } from "@/lib/comidas";
 import { fechaDeParam, fechaLarga, nombreDia, sumarDias } from "@/components/comidas/fechas";
 import { firmarFotos } from "@/components/comidas/firmar-fotos";
 import { TarjetaComida } from "@/components/comidas/tarjeta-comida";
+import { InstalarApp } from "@/components/instalar-app";
 import {
   IconoDerecha,
   IconoIzquierda,
@@ -13,7 +14,7 @@ import {
   IconoPlato,
 } from "@/components/comidas/iconos";
 
-export const metadata: Metadata = { title: "Hoy · nudat" };
+export const metadata: Metadata = { title: "Hoy" };
 
 const botonDia =
   "flex size-12 shrink-0 items-center justify-center rounded-full border border-borde bg-superficie text-tinta";
@@ -87,6 +88,8 @@ export default async function PaginaHoy({
           </Link>
         </div>
       )}
+
+      <InstalarApp />
 
       {comidas.length > 0 ? (
         <>

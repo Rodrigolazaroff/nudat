@@ -7,7 +7,7 @@ import type { TipoComida } from "@/lib/database.types";
 import { diaYMes, nombreDia, sumarDias } from "@/components/comidas/fechas";
 import { IconoDerecha } from "@/components/comidas/iconos";
 
-export const metadata: Metadata = { title: "Historial · nudat" };
+export const metadata: Metadata = { title: "Historial" };
 
 const DIAS = 14;
 

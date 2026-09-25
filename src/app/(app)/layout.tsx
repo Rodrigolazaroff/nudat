@@ -2,6 +2,7 @@ import type { Viewport } from "next";
 import Link from "next/link";
 import { obtenerPerfil } from "@/lib/perfil";
 import { NavInferior } from "@/components/comidas/nav-inferior";
+import { Logo } from "@/components/logo";
 
 // viewport-fit=cover habilita env(safe-area-inset-*) en iOS (barra inferior y botón fijo).
 export const viewport: Viewport = {
@@ -17,9 +18,10 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
         <div className="mx-auto flex h-14 max-w-lg items-center justify-between gap-3 px-4">
           <Link
             href="/"
-            className="-mx-2 rounded-lg px-2 py-2 text-xl font-semibold tracking-tight text-primario"
+            aria-label="nudat, ir a Hoy"
+            className="-mx-2 flex rounded-lg px-2 py-2"
           >
-            nudat
+            <Logo className="text-xl" />
           </Link>
           <div className="flex min-w-0 items-center gap-1">
             {perfil.nombre && (

@@ -12,7 +12,7 @@ import { ResumenSemana } from "@/components/semana/resumen-semana";
 import { SelectorSemana } from "@/components/semana/selector-semana";
 import { ui } from "@/components/semana/ui";
 
-export const metadata: Metadata = { title: "Mi semana · nudat" };
+export const metadata: Metadata = { title: "Mi semana" };
 
 type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

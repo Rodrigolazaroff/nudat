@@ -1,4 +1,5 @@
 import type { ComponentProps, ReactNode } from "react";
+import { Logo } from "@/components/logo";
 
 // Piezas visuales de las pantallas de auth (login, registro, recuperar, nueva clave).
 // Sin hooks: se pueden usar desde Server y Client Components.
@@ -18,7 +19,11 @@ export const clases = {
 };
 
 export function Marca() {
-  return <p className="text-2xl font-semibold tracking-tight text-primario">nudat</p>;
+  return (
+    <p>
+      <Logo className="text-2xl" />
+    </p>
+  );
 }
 
 // Columna centrada para todas las pantallas de auth. Mobile-first: en el celular

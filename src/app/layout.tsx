@@ -20,6 +20,12 @@ export const metadata: Metadata = {
   description:
     "Tu registro alimentario: cargá lo que comés y tomás cada día, con foto y horario.",
   applicationName: "nudat",
+  // Instalada en iOS (Agregar a inicio): pantalla completa, con el nombre corto.
+  appleWebApp: {
+    capable: true,
+    title: "nudat",
+    statusBarStyle: "default",
+  },
 };
 
 export const viewport: Viewport = {

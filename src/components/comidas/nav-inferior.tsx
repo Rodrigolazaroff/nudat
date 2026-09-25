@@ -3,8 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { IconoHistorial, IconoHoy, IconoSemana } from "@/components/comidas/iconos";
+import {
+  IconoHistorial,
+  IconoHoy,
+  IconoResumen,
+  IconoSemana,
+} from "@/components/comidas/iconos";
 
+// Orden: Hoy y Resumen primero (lo de todos los días: cargar y ver cómo vengo);
+// Semana (para imprimir) e Historial (para buscar un día) son de consulta.
 // En los formularios (nueva / editar) la barra se oculta: abajo va el botón Guardar.
 const RUTAS_SIN_NAV = ["/nueva", "/comida/"];
 
@@ -23,6 +30,13 @@ export function NavInferior() {
         <div className="mx-auto flex h-16 max-w-lg">
           <ItemNav href="/" activo={pathname === "/"} icono={<IconoHoy />}>
             Hoy
+          </ItemNav>
+          <ItemNav
+            href="/resumen"
+            activo={pathname.startsWith("/resumen")}
+            icono={<IconoResumen />}
+          >
+            Resumen
           </ItemNav>
           <ItemNav href="/semana" activo={pathname.startsWith("/semana")} icono={<IconoSemana />}>
             Semana

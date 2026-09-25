@@ -7,7 +7,7 @@ import { firmarFotos } from "@/components/comidas/firmar-fotos";
 import { EncabezadoFormulario } from "@/components/comidas/encabezado-formulario";
 import { FormularioComida } from "@/components/comidas/formulario-comida";
 
-export const metadata: Metadata = { title: "Editar registro · nudat" };
+export const metadata: Metadata = { title: "Editar registro" };
 
 const RE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

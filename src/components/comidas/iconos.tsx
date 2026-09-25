@@ -106,3 +106,11 @@ export const IconoSemana = (p: P) => (
     <path d="M17 16v-3" />
   </Icono>
 );
+
+// Torta con una porción separada: el resumen / dashboard.
+export const IconoResumen = (p: P) => (
+  <Icono {...p}>
+    <path d="M11 4.05A8 8 0 1 0 19.95 13H11z" />
+    <path d="M14.5 3.3a7.5 7.5 0 0 1 6.2 6.2h-6.2z" />
+  </Icono>
+);
