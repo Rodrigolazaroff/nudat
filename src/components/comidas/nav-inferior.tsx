@@ -21,16 +21,17 @@ export function NavInferior() {
 
   return (
     <>
-      {/* Reserva el alto de la barra fija para que no tape el final del contenido. */}
+      {/* Reserva el alto de la barra fija (y un respiro) para que no tape el final. */}
       <div
         aria-hidden="true"
-        className="h-[calc(4rem_+_env(safe-area-inset-bottom))] shrink-0 print:hidden"
+        className="h-[calc(6rem_+_env(safe-area-inset-bottom))] shrink-0 print:hidden"
       />
+      {/* Cápsula flotante verde profundo, despegada de los bordes. */}
       <nav
         aria-label="Secciones"
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-borde bg-superficie pb-[env(safe-area-inset-bottom)] print:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 px-3 pb-[calc(env(safe-area-inset-bottom)_+_0.75rem)] print:hidden"
       >
-        <div className="mx-auto flex h-16 max-w-lg">
+        <div className="mx-auto flex h-16 max-w-lg gap-1 rounded-full bg-primario-profundo p-1.5 shadow-[inset_0_1px_0_rgb(255_255_255/0.08),0_20px_40px_-12px_rgb(23_54_40/0.55)]">
           <ItemNav href="/" activo={pathname === "/"} icono={<IconoHoy />}>
             Hoy
           </ItemNav>
@@ -68,23 +69,19 @@ function ItemNav({
   icono: ReactNode;
   children: ReactNode;
 }) {
-  // Activo: píldora detrás del ícono y label en semibold, no solo el color.
-  // Foco: contorno verde por dentro del ítem (la barra está pegada al borde).
+  // Activo: píldora crema con texto verde (contraste fuerte, no solo color).
+  // La barra ocupa 4rem + 0.75rem de margen + zona segura: lo fijo de arriba se apoya ahí.
   return (
     <Link
       href={href}
       aria-current={activo ? "page" : undefined}
-      className={`group flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl text-xs outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primario ${
-        activo ? "font-semibold text-primario" : "font-medium text-tinta-suave hover:text-tinta"
+      className={`relative flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-full text-[0.6875rem] leading-none outline-none transition-[background-color,color,transform] duration-500 ease-premium focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-acento active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100 ${
+        activo
+          ? "bg-fondo font-bold text-primario-profundo shadow-[inset_0_1px_0_rgb(255_255_255/0.9)]"
+          : "font-medium text-sobre-profundo-suave hover:text-sobre-primario"
       }`}
     >
-      <span
-        className={`flex h-7 w-14 items-center justify-center rounded-full transition-colors motion-reduce:transition-none ${
-          activo ? "bg-primario-suave" : "group-hover:bg-fondo"
-        }`}
-      >
-        {icono}
-      </span>
+      <span className="[&>svg]:size-[1.35rem]">{icono}</span>
       {children}
     </Link>
   );

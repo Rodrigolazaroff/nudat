@@ -36,7 +36,7 @@ export function BotonGoogle() {
         type="button"
         onClick={continuar}
         disabled={yendo}
-        className={`${clases.botonSecundario} gap-3 disabled:opacity-60`}
+        className={`${clases.botonSecundario} gap-3`}
       >
         <LogoGoogle />
         {yendo ? "Abriendo Google…" : "Continuar con Google"}
@@ -50,8 +50,12 @@ export function BotonGoogle() {
 
 export function SeparadorO() {
   return (
-    <div className="flex items-center gap-3 text-sm text-tinta-suave" aria-hidden="true">
-      <span className="h-px flex-1 bg-borde" />o<span className="h-px flex-1 bg-borde" />
+    <div
+      className="flex items-center gap-4 py-1 text-xs font-semibold tracking-wide text-tinta-suave"
+      aria-hidden="true"
+    >
+      <span className="h-px flex-1 bg-linear-to-r from-transparent to-borde" />o
+      <span className="h-px flex-1 bg-linear-to-l from-transparent to-borde" />
     </div>
   );
 }

@@ -104,13 +104,13 @@ export function BotonDictar({
       onClick={() => (escuchando ? reconocedor.current?.stop() : empezar())}
       aria-pressed={escuchando}
       aria-label={escuchando ? "Dejar de dictar" : "Dictar descripción"}
-      className={`inline-flex h-11 items-center justify-center rounded-full transition-[background-color,width,color] duration-200 ease-out motion-reduce:transition-none ${
+      className={`inline-flex h-11 items-center justify-center rounded-full transition-[background-color,width,color,box-shadow] duration-300 ease-premium motion-reduce:transition-none ${
         escuchando
-          ? "w-20 bg-primario text-sobre-primario"
-          : "w-11 text-primario hover:bg-primario-suave active:bg-primario-suave"
+          ? "w-20 bg-primario text-sobre-primario shadow-boton"
+          : "w-11 bg-primario-suave text-primario hover:bg-primario hover:text-sobre-primario"
       } ${className}`}
     >
-      {escuchando ? <Onda /> : <IconoMicrofono className="size-6" />}
+      {escuchando ? <Onda /> : <IconoMicrofono className="size-5" />}
     </button>
   );
 }

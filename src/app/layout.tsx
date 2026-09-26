@@ -1,14 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Bricolage_Grotesque, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Texto: Plus Jakarta Sans (grotesca abierta, muy legible chica en el celu).
+// Títulos y números grandes: Bricolage Grotesque (con carácter, usar con font-display).
+const texto = Plus_Jakarta_Sans({
+  variable: "--font-texto",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const titulos = Bricolage_Grotesque({
+  variable: "--font-titulos",
   subsets: ["latin"],
 });
 
@@ -29,16 +31,17 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#2f6b4f",
+  // Mismo crema que el fondo: la barra de estado se funde con la app.
+  themeColor: "#f4f1e9",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="es-AR"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${texto.variable} ${titulos.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-fondo text-tinta">{children}</body>
+      <body className="flex min-h-full flex-col text-tinta">{children}</body>
     </html>
   );
 }

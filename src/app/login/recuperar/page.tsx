@@ -12,7 +12,6 @@ export default function RecuperarPage() {
   return (
     <PantallaAuth
       titulo="Recuperá tu contraseña"
-      bajada="Te mandamos un link por mail para que elijas una nueva."
       pie={
         <Link href="/login" className={`${clases.link} inline-flex min-h-12 items-center`}>
           Volver a ingresar

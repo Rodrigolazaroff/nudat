@@ -29,7 +29,6 @@ export default async function LoginPage({ searchParams }: Props) {
   return (
     <PantallaAuth
       titulo="Ingresá a tu cuenta"
-      bajada="Tu registro de comidas y bebidas del día."
       pie={
         <p>
           ¿No tenés cuenta?{" "}
@@ -37,7 +36,7 @@ export default async function LoginPage({ searchParams }: Props) {
             Creá una
           </Link>
           <br />
-          <Link href="/privacidad" className={`${clases.link} mt-3 inline-block`}>
+          <Link href="/privacidad" className={`${clases.link} mt-4 inline-block font-medium text-tinta-suave`}>
             Privacidad
           </Link>
         </p>

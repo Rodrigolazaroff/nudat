@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { obtenerPerfil } from "@/lib/perfil";
 import { createClient } from "@/lib/supabase/server";
@@ -12,26 +13,22 @@ import {
   IconoIzquierda,
   IconoMas,
   IconoPlato,
+  IconoVolver,
 } from "@/components/comidas/iconos";
 
 export const metadata: Metadata = { title: "Hoy" };
 
-// Foco de teclado visible y consistente (el mismo anillo que la tarjeta de instalar).
-const foco =
-  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primario";
-
-const botonDia = `flex size-12 shrink-0 items-center justify-center rounded-full border border-borde bg-superficie text-tinta transition-colors ${foco}`;
-
-/** "1 comida" · "3 comidas y 2 bebidas" · "1 bebida". */
-function conteo(tipos: string[]): string {
+/** "3 comidas", "2 bebidas": una pastilla por grupo (solo los que hay). */
+function conteo(tipos: string[]) {
   const bebidas = tipos.filter((t) => t === "bebida").length;
   const comidas = tipos.length - bebidas;
-  const partes = [
-    comidas > 0 ? `${comidas} ${comidas === 1 ? "comida" : "comidas"}` : null,
-    bebidas > 0 ? `${bebidas} ${bebidas === 1 ? "bebida" : "bebidas"}` : null,
-  ].filter(Boolean);
-  return partes.join(" y ");
+  return {
+    comidas: comidas > 0 ? `${comidas} ${comidas === 1 ? "comida" : "comidas"}` : null,
+    bebidas: bebidas > 0 ? `${bebidas} ${bebidas === 1 ? "bebida" : "bebidas"}` : null,
+  };
 }
+
+const escalon = (i: number) => ({ "--i": i }) as CSSProperties;
 
 export default async function PaginaHoy({
   searchParams,
@@ -61,93 +58,102 @@ export default async function PaginaHoy({
   const anterior = sumarDias(fecha, -1);
   const siguiente = sumarDias(fecha, 1);
 
-  return (
-    <div className="pb-20">
-      <div className="flex items-center justify-between gap-2">
-        <Link
-          href={`/?fecha=${anterior}`}
-          aria-label={`Ver ${nombreDia(anterior, hoy).toLowerCase()}`}
-          className={`${botonDia} hover:border-primario/40 active:bg-primario-suave`}
-        >
-          <IconoIzquierda className="size-5" />
-        </Link>
+  const { comidas: textoComidas, bebidas: textoBebidas } = conteo(comidas.map((c) => c.tipo));
 
-        <div className="min-w-0 text-center">
-          <h1 className="text-xl font-semibold text-balance">{nombreDia(fecha, hoy)}</h1>
-          <p className="truncate text-sm text-tinta-suave">{fechaLarga(fecha, hoy)}</p>
+  return (
+    <div className="pb-24">
+      {/* ── Día: título grande a la izquierda, flechas a la derecha ── */}
+      <div className="entrar flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="titulo-pantalla text-[clamp(2.5rem,12vw,3.5rem)]">
+            {nombreDia(fecha, hoy)}
+          </h1>
+          <p className="mt-2 truncate font-medium text-tinta-suave first-letter:uppercase">
+            {fechaLarga(fecha, hoy)}
+          </p>
         </div>
 
-        {esHoy ? (
-          <span aria-hidden="true" className={`${botonDia} text-tinta-suave opacity-40`}>
-            <IconoDerecha className="size-5" />
-          </span>
-        ) : (
+        <div className="flex shrink-0 gap-2 pt-1">
           <Link
-            href={`/?fecha=${siguiente}`}
-            aria-label={`Ver ${nombreDia(siguiente, hoy).toLowerCase()}`}
-            className={`${botonDia} hover:border-primario/40 active:bg-primario-suave`}
+            href={`/?fecha=${anterior}`}
+            aria-label={`Ver ${nombreDia(anterior, hoy).toLowerCase()}`}
+            className="boton-circulo foco"
           >
-            <IconoDerecha className="size-5" />
+            <IconoIzquierda className="size-5" />
           </Link>
-        )}
+          {esHoy ? (
+            <span aria-hidden="true" className="boton-circulo text-tinta-suave opacity-40 shadow-none">
+              <IconoDerecha className="size-5" />
+            </span>
+          ) : (
+            <Link
+              href={`/?fecha=${siguiente}`}
+              aria-label={`Ver ${nombreDia(siguiente, hoy).toLowerCase()}`}
+              className="boton-circulo foco"
+            >
+              <IconoDerecha className="size-5" />
+            </Link>
+          )}
+        </div>
       </div>
 
-      {!esHoy && (
-        <div className="mt-2 text-center">
-          <Link
-            href="/"
-            className={`inline-flex h-12 items-center rounded-xl px-3 text-sm font-medium text-primario underline-offset-4 hover:underline ${foco}`}
-          >
-            Volver a hoy
-          </Link>
+      {/* ── Conteo del día + volver a hoy ── */}
+      {(comidas.length > 0 || !esHoy) && (
+        <div className="entrar mt-5 flex flex-wrap items-center gap-2" style={escalon(1)}>
+          {textoComidas ? <span className="pastilla">{textoComidas}</span> : null}
+          {textoBebidas ? (
+            <span className="pastilla bg-acento-suave text-acento-tinta">{textoBebidas}</span>
+          ) : null}
+          {!esHoy && (
+            <Link
+              href="/"
+              className="foco ml-auto inline-flex h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-primario transition-colors duration-300 ease-premium hover:bg-primario-suave"
+            >
+              <IconoVolver className="size-4" />
+              Volver a hoy
+            </Link>
+          )}
         </div>
       )}
 
       <InstalarApp />
 
       {comidas.length > 0 ? (
-        <>
-          <p className="mt-5 mb-2 text-sm text-tinta-suave">
-            {conteo(comidas.map((c) => c.tipo))}
-          </p>
-          <ul className="flex flex-col gap-3">
-            {comidas.map((comida) => (
-              <li key={comida.id}>
-                <TarjetaComida
-                  comida={comida}
-                  fotoUrl={comida.foto_path ? (urls.get(comida.foto_path) ?? null) : null}
-                />
-              </li>
-            ))}
-          </ul>
-        </>
+        <ul className="mt-5 flex flex-col gap-3">
+          {comidas.map((comida, i) => (
+            <li key={comida.id} className="entrar" style={escalon(Math.min(i + 2, 8))}>
+              <TarjetaComida
+                comida={comida}
+                fotoUrl={comida.foto_path ? (urls.get(comida.foto_path) ?? null) : null}
+              />
+            </li>
+          ))}
+        </ul>
       ) : (
-        <div className="mt-8 flex flex-col items-center px-4 text-center">
-          <div className="flex size-16 items-center justify-center rounded-full bg-primario-suave text-primario">
-            <IconoPlato className="size-8" />
+        <div className="bisel entrar mt-6" style={escalon(2)}>
+          <div className="bisel-nucleo flex flex-col items-center px-6 py-10 text-center">
+            <div className="flex size-18 items-center justify-center rounded-full bg-primario-suave text-primario shadow-[inset_0_0_0_6px_var(--superficie),0_0_0_1px_var(--borde)]">
+              <IconoPlato className="size-8" />
+            </div>
+            <h2 className="mt-5 font-display text-xl font-bold tracking-tight text-balance">
+              {esHoy ? "Todavía no cargaste nada hoy" : "No hay nada cargado este día"}
+            </h2>
           </div>
-          <h2 className="mt-4 font-medium text-balance">
-            {esHoy ? "Todavía no cargaste nada hoy" : "No hay nada cargado este día"}
-          </h2>
-          <p className="mt-1 max-w-xs text-sm text-pretty text-tinta-suave">
-            {esHoy
-              ? "Sacale una foto al plato antes de empezar y anotá también lo que tomás. Cargarlo te lleva unos segundos."
-              : "Si te olvidaste de algo, podés agregarlo ahora con la fecha de este día."}
-          </p>
         </div>
       )}
 
-      {/* Botón fijo arriba de la barra de navegación. */}
-      <div className="fixed inset-x-0 bottom-[calc(4rem_+_env(safe-area-inset-bottom))] z-20 bg-linear-to-t from-fondo via-fondo/90 to-transparent pt-4 pb-3">
-        <div className="mx-auto max-w-lg px-4">
-          <Link
-            href={`/nueva?fecha=${fecha}`}
-            className={`flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primario px-5 font-medium text-sobre-primario shadow-sm transition-[background-color,scale] duration-150 ease-out hover:bg-primario-hover active:scale-[0.98] active:bg-primario-hover motion-reduce:transition-none motion-reduce:active:scale-100 ${foco}`}
-          >
+      {/* Botón fijo, apoyado sobre la barra de navegación flotante (4rem + 0.75rem + zona
+          segura). El degradé cubre también detrás de la barra para que el contenido se funda. */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-20 bg-linear-to-t from-fondo from-50% via-fondo/85 to-transparent px-4 pt-10 pb-[calc(5.5rem_+_env(safe-area-inset-bottom))] print:hidden">
+        <Link
+          href={`/nueva?fecha=${fecha}`}
+          className="boton boton-primario foco group pointer-events-auto mx-auto flex h-15 w-full max-w-[calc(32rem_-_2rem)] justify-between pr-2.5 pl-6 text-[1.0625rem]"
+        >
+          Agregar comida o bebida
+          <span aria-hidden="true" className="boton-icono">
             <IconoMas className="size-5" />
-            Agregar comida o bebida
-          </Link>
-        </div>
+          </span>
+        </Link>
       </div>
     </div>
   );

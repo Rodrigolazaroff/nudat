@@ -1,33 +1,35 @@
 // Esqueleto para las pantallas angostas mientras llegan los datos. Copia la estructura de Hoy
-// (la más visitada): botones de día, título, conteo y tarjetas, así no salta al cargar.
+// (la más visitada): título grande + fecha, flechas, pastilla de conteo y tarjetas con bisel,
+// así no salta al cargar. El brillo (.esqueleto) se apaga con prefers-reduced-motion.
 export default function Cargando() {
   return (
-    <div role="status" className="animate-pulse motion-reduce:animate-none">
+    <div role="status">
       <span className="sr-only">Cargando…</span>
       <div aria-hidden="true">
-        <div className="flex items-center justify-between gap-2">
-          <div className="size-12 shrink-0 rounded-full border border-borde bg-superficie" />
-          {/* Mismo alto que el título (28px) + la fecha (20px) de Hoy. */}
-          <div className="flex flex-col items-center">
-            <div className="my-0.5 h-6 w-24 rounded-lg bg-borde/70" />
-            <div className="my-0.5 h-4 w-40 rounded-lg bg-borde/50" />
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="esqueleto h-[clamp(2.5rem,12vw,3.5rem)] w-32 rounded-2xl" />
+            <div className="esqueleto mt-2 h-5 w-48 rounded-full" />
           </div>
-          <div className="size-12 shrink-0 rounded-full border border-borde bg-superficie" />
+          <div className="flex gap-2 pt-1">
+            <div className="boton-circulo" />
+            <div className="boton-circulo opacity-40 shadow-none" />
+          </div>
         </div>
-        <div className="mt-5 mb-2 flex h-5 items-center">
-          <div className="h-3.5 w-28 rounded bg-borde/50" />
-        </div>
-        <div className="flex flex-col gap-3">
+        <div className="esqueleto mt-5 h-7 w-24 rounded-full" />
+        <div className="mt-5 flex flex-col gap-3">
           {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="flex items-center gap-3 rounded-2xl border border-borde bg-superficie p-4"
-            >
-              <div className="size-18 shrink-0 rounded-xl bg-borde/60" />
-              <div className="flex-1">
-                <div className="h-4 w-24 rounded bg-borde/70" />
-                <div className="mt-2 h-3 w-full rounded bg-borde/50" />
-                <div className="mt-1.5 h-3 w-2/3 rounded bg-borde/50" />
+            <div key={i} className="bisel">
+              <div className="bisel-nucleo flex items-center gap-4 p-2.5 pr-3">
+                <div className="esqueleto size-20 shrink-0 rounded-xl" />
+                <div className="flex-1 py-1">
+                  <div className="flex justify-between gap-2">
+                    <div className="esqueleto h-4 w-24 rounded-full" />
+                    <div className="esqueleto h-4 w-12 rounded-full" />
+                  </div>
+                  <div className="esqueleto mt-3 h-3 w-full rounded-full" />
+                  <div className="esqueleto mt-2 h-3 w-2/3 rounded-full" />
+                </div>
               </div>
             </div>
           ))}

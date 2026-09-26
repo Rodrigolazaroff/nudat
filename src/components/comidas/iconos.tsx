@@ -7,7 +7,7 @@ function Icono({ children, className = "size-6", ...props }: SVGProps<SVGSVGElem
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={1.8}
+      strokeWidth={1.6}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
@@ -44,6 +44,14 @@ export const IconoPlato = (p: P) => (
   </Icono>
 );
 
+// Vaso: bebidas.
+export const IconoVaso = (p: P) => (
+  <Icono {...p}>
+    <path d="M6 4h12l-1.6 14.2A2 2 0 0 1 14.4 20H9.6a2 2 0 0 1-2-1.8z" />
+    <path d="M6.7 9.5h10.6" />
+  </Icono>
+);
+
 export const IconoIzquierda = (p: P) => (
   <Icono {...p}>
     <path d="m15 18-6-6 6-6" />
@@ -59,6 +67,18 @@ export const IconoDerecha = (p: P) => (
 export const IconoVolver = (p: P) => (
   <Icono {...p}>
     <path d="M19 12H5m6-6-6 6 6 6" />
+  </Icono>
+);
+
+export const IconoAvanzar = (p: P) => (
+  <Icono {...p}>
+    <path d="M5 12h14m-6-6 6 6-6 6" />
+  </Icono>
+);
+
+export const IconoListo = (p: P) => (
+  <Icono {...p}>
+    <path d="m5 12.5 4.5 4.5L19 7" />
   </Icono>
 );
 

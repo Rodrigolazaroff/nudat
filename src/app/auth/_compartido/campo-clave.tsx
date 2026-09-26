@@ -15,8 +15,8 @@ export function CampoClave({ name, etiqueta, ayuda, ...props }: CampoClaveProps)
   const idAyuda = ayuda ? `${name}-ayuda` : undefined;
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor={name} className="text-sm font-medium">
+    <div className="flex flex-col gap-2">
+      <label htmlFor={name} className="etiqueta">
         {etiqueta}
       </label>
       <div className="relative">
@@ -36,7 +36,7 @@ export function CampoClave({ name, etiqueta, ayuda, ...props }: CampoClaveProps)
           onClick={() => setVisible((v) => !v)}
           aria-controls={name}
           aria-label={visible ? "Ocultar contraseña" : "Mostrar contraseña"}
-          className="absolute inset-y-0 right-0 flex min-w-12 items-center justify-center rounded-r-xl px-4 text-sm font-medium text-primario focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primario"
+          className="absolute inset-y-1.5 right-1.5 flex min-w-12 items-center justify-center rounded-xl px-3.5 text-sm font-semibold text-primario transition-colors duration-300 ease-premium hover:bg-primario-suave focus-visible:outline-2 focus-visible:outline-primario"
         >
           {visible ? "Ocultar" : "Mostrar"}
         </button>

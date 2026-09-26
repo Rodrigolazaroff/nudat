@@ -3,19 +3,15 @@ import { Logo } from "@/components/logo";
 
 // Piezas visuales de las pantallas de auth (login, registro, recuperar, nueva clave).
 // Sin hooks: se pueden usar desde Server y Client Components.
-
-const foco =
-  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primario";
+// Las clases base (.boton, .campo, .bisel…) viven en globals.css; ver DESIGN.md.
 
 export const clases = {
-  botonPrimario: `inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primario px-5 font-medium text-sobre-primario transition-colors hover:bg-primario-hover disabled:opacity-50 ${foco}`,
-  botonSecundario: `inline-flex h-12 w-full items-center justify-center rounded-xl border border-borde bg-superficie px-5 font-medium text-tinta transition-colors hover:bg-fondo ${foco}`,
-  input:
-    "h-12 w-full rounded-xl border border-borde bg-superficie px-4 text-base text-tinta outline-none focus:border-primario focus:ring-2 focus:ring-primario/20 read-only:bg-fondo read-only:text-tinta-suave",
-  tarjeta: "rounded-2xl border border-borde bg-superficie p-5",
-  error: "rounded-xl bg-peligro-suave px-4 py-3 text-sm text-peligro",
-  aviso: "rounded-xl bg-primario-suave px-4 py-3 text-sm text-tinta",
-  link: `rounded font-medium text-primario underline-offset-4 hover:underline ${foco}`,
+  botonPrimario: "boton boton-primario foco w-full disabled:opacity-60",
+  botonSecundario: "boton boton-secundario foco w-full disabled:opacity-60",
+  input: "campo",
+  error: "rounded-2xl bg-peligro-suave px-4 py-3 text-sm text-peligro",
+  aviso: "rounded-2xl bg-primario-suave px-4 py-3 text-sm text-tinta",
+  link: "foco rounded font-semibold text-primario underline decoration-primario/30 decoration-2 underline-offset-4 transition-colors duration-300 ease-premium hover:decoration-primario",
 };
 
 export function Marca() {
@@ -26,8 +22,8 @@ export function Marca() {
   );
 }
 
-// Columna centrada para todas las pantallas de auth. Mobile-first: en el celular
-// arranca arriba (el teclado no tapa el form); desde sm se centra vertical.
+// Columna para todas las pantallas de auth. Mobile-first: en el celular arranca arriba
+// (el teclado no tapa el form); desde sm se centra vertical.
 export function PantallaAuth({
   titulo,
   bajada,
@@ -40,18 +36,44 @@ export function PantallaAuth({
   pie?: ReactNode;
 }) {
   return (
-    <main className="mx-auto flex w-full max-w-sm flex-1 flex-col px-4 pt-12 pb-10 sm:justify-center sm:pt-10">
-      <Marca />
-      <h1 className="mt-8 text-2xl font-semibold tracking-tight text-balance">{titulo}</h1>
-      {bajada ? <div className="mt-2 text-tinta-suave text-pretty">{bajada}</div> : null}
-      <div className="mt-6 flex flex-col gap-4">{children}</div>
-      {pie ? <div className="mt-8 text-center text-sm text-tinta-suave text-pretty">{pie}</div> : null}
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 pt-[calc(env(safe-area-inset-top)_+_2.5rem)] pb-10 sm:justify-center sm:pt-12">
+      <div className="entrar">
+        <Marca />
+      </div>
+      <h1
+        className="titulo-pantalla entrar mt-10 text-[2.75rem] text-balance"
+        style={{ "--i": 1 } as React.CSSProperties}
+      >
+        {titulo}
+      </h1>
+      {bajada ? (
+        <div
+          className="entrar mt-3 text-[1.0625rem] text-tinta-suave text-pretty"
+          style={{ "--i": 2 } as React.CSSProperties}
+        >
+          {bajada}
+        </div>
+      ) : null}
+      <div
+        className="entrar mt-8 flex flex-col gap-4"
+        style={{ "--i": 3 } as React.CSSProperties}
+      >
+        {children}
+      </div>
+      {pie ? (
+        <div className="mt-10 text-center text-sm text-tinta-suave text-pretty">{pie}</div>
+      ) : null}
     </main>
   );
 }
 
+/** Bisel doble: bandeja + núcleo. El contenido principal de cada pantalla de auth. */
 export function Tarjeta({ children }: { children: ReactNode }) {
-  return <div className={clases.tarjeta}>{children}</div>;
+  return (
+    <div className="bisel">
+      <div className="bisel-nucleo p-5">{children}</div>
+    </div>
+  );
 }
 
 export function MensajeError({ children }: { children: ReactNode }) {
@@ -79,8 +101,8 @@ type CampoProps = Omit<ComponentProps<"input">, "id" | "name" | "className"> & {
 export function Campo({ name, etiqueta, ayuda, ...props }: CampoProps) {
   const idAyuda = ayuda ? `${name}-ayuda` : undefined;
   return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor={name} className="text-sm font-medium">
+    <div className="flex flex-col gap-2">
+      <label htmlFor={name} className="etiqueta">
         {etiqueta}
       </label>
       <input

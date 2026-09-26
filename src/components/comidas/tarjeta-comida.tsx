@@ -2,15 +2,18 @@ import Link from "next/link";
 import type { Comida } from "@/lib/database.types";
 import { etiquetaTipo } from "@/lib/comidas";
 import { HORA_CORTE_DIA, minutosDeHora } from "@/lib/resumen";
-import { IconoDerecha, IconoPlato } from "@/components/comidas/iconos";
+import { IconoDerecha, IconoLuna, IconoPlato, IconoVaso } from "@/components/comidas/iconos";
 
 type Props = {
   comida: Pick<Comida, "id" | "hora" | "tipo" | "descripcion" | "foto_path">;
   fotoUrl: string | null;
 };
 
+// Tarjeta de un registro en Hoy: bisel doble (bandeja + núcleo), foto o ícono del tipo,
+// tipo y hora arriba (la hora en display), descripción abajo.
 export function TarjetaComida({ comida, fotoUrl }: Props) {
   const tipo = etiquetaTipo(comida.tipo);
+  const esBebida = comida.tipo === "bebida";
   const hora = comida.hora.slice(0, 5);
   const descripcion = comida.descripcion.trim();
   // Antes de las 05:00: en el resumen y en la semana cuenta para el día anterior.
@@ -20,40 +23,51 @@ export function TarjetaComida({ comida, fotoUrl }: Props) {
   return (
     <Link
       href={`/comida/${comida.id}`}
-      className="flex items-center gap-3 rounded-2xl border border-borde bg-superficie p-4 outline-none transition-colors hover:border-primario/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primario active:bg-fondo motion-reduce:transition-none"
+      className="bisel foco group block transition-transform duration-500 ease-premium active:scale-[0.985] motion-reduce:transition-none motion-reduce:active:scale-100"
     >
-      {fotoUrl ? (
-        // URL firmada de Supabase: <img> simple (next/image necesitaría remotePatterns).
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={fotoUrl}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          className="size-18 shrink-0 rounded-xl bg-fondo object-cover"
-        />
-      ) : (
-        <div className="flex size-18 shrink-0 items-center justify-center rounded-xl bg-primario-suave text-primario">
-          <IconoPlato className="size-7" />
-        </div>
-      )}
-
-      <div className="min-w-0 flex-1">
-        <div className="flex items-baseline justify-between gap-2">
-          <span className="truncate font-medium">{tipo}</span>
-          <span className="shrink-0 text-sm tabular-nums text-tinta-suave">{hora}</span>
-        </div>
-        {deMadrugada ? (
-          <p className="text-xs text-tinta-suave">Cuenta para el día anterior</p>
-        ) : null}
-        {descripcion ? (
-          <p className="mt-0.5 line-clamp-2 text-sm text-tinta-suave">{descripcion}</p>
+      <div className="bisel-nucleo flex items-center gap-4 p-2.5 pr-3 transition-shadow duration-500 ease-premium group-hover:shadow-flotante">
+        {fotoUrl ? (
+          // URL firmada de Supabase: <img> simple (next/image necesitaría remotePatterns).
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={fotoUrl}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="size-20 shrink-0 rounded-xl bg-hundido object-cover"
+          />
         ) : (
-          <p className="mt-0.5 text-sm text-tinta-suave italic">Sin descripción</p>
+          <div
+            className={`flex size-20 shrink-0 items-center justify-center rounded-xl ${
+              esBebida ? "bg-acento-suave text-acento-tinta" : "bg-primario-suave text-primario"
+            }`}
+          >
+            {esBebida ? <IconoVaso className="size-8" /> : <IconoPlato className="size-8" />}
+          </div>
         )}
-      </div>
 
-      <IconoDerecha className="size-5 shrink-0 text-tinta-suave/60" />
+        <div className="min-w-0 flex-1 py-1">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="truncate font-semibold tracking-tight">{tipo}</span>
+            <span className="shrink-0 font-display text-lg leading-none font-bold tracking-tight tabular-nums">
+              {hora}
+            </span>
+          </div>
+          {deMadrugada ? (
+            <p className="mt-1 flex items-center gap-1 text-xs font-medium text-tinta-suave">
+              <IconoLuna className="size-3.5" />
+              Cuenta para el día anterior
+            </p>
+          ) : null}
+          {descripcion ? (
+            <p className="mt-1 line-clamp-2 text-sm leading-snug text-tinta-suave">{descripcion}</p>
+          ) : (
+            <p className="mt-1 text-sm text-tinta-suave italic">Sin descripción</p>
+          )}
+        </div>
+
+        <IconoDerecha className="size-5 shrink-0 text-tinta-suave/50 transition-transform duration-500 ease-premium group-hover:translate-x-0.5" />
+      </div>
     </Link>
   );
 }

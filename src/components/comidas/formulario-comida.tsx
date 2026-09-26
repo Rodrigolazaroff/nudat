@@ -21,6 +21,7 @@ import {
   IconoCamara,
   IconoCerrar,
   IconoGaleria,
+  IconoListo,
   IconoReloj,
 } from "@/components/comidas/iconos";
 
@@ -97,16 +98,10 @@ class ErrorVisible extends Error {}
 
 const MENSAJE_GUARDAR = "No pudimos guardar el registro. Revisá la conexión y probá de nuevo.";
 
-const claseInput =
-  "h-12 w-full rounded-xl border border-borde bg-superficie px-4 text-base outline-none placeholder:text-tinta-suave focus:border-primario focus:ring-2 focus:ring-primario/20";
-
-// Foco de teclado visible y consistente en botones (el mismo anillo en toda la app).
-const foco =
-  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primario";
-
-// Respuesta al toque en los botones grandes: se hunden apenas. Sin movimiento si se pide.
-const presion =
-  "transition-[background-color,border-color,scale] duration-150 ease-out active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100";
+// Clases del sistema (globals.css / DESIGN.md): .campo, .boton, .chip, .bisel, .foco.
+// Fecha y hora: el valor nativo alineado a la izquierda, sin el estilo del navegador.
+const claseFechaHora =
+  "campo min-w-0 appearance-none [&::-webkit-date-and-time-value]:text-left";
 
 export function FormularioComida({ usuarioId, hoy, valores, comida }: FormularioComidaProps) {
   const router = useRouter();
@@ -329,28 +324,27 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
             />
 
             {procesandoFoto ? (
-              <div
-                role="status"
-                className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 rounded-2xl border border-borde bg-superficie text-sm text-tinta-suave"
-              >
-                <span
-                  aria-hidden="true"
-                  className="size-6 animate-spin rounded-full border-2 border-primario border-t-transparent"
-                />
-                Preparando la foto…
+              <div role="status" className="bisel">
+                <div className="bisel-nucleo flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 text-sm font-medium text-tinta-suave">
+                  <span
+                    aria-hidden="true"
+                    className="size-6 animate-spin rounded-full border-2 border-primario border-t-transparent motion-reduce:animate-none"
+                  />
+                  Preparando la foto…
+                </div>
               </div>
             ) : foto ? (
-              <div className="relative">
+              <div className="bisel relative">
                 {foto.url ? (
                   // Vista previa local (blob:) o URL firmada: <img> simple, sin next/image.
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={foto.url}
                     alt="Foto del plato"
-                    className="aspect-[4/3] w-full rounded-2xl bg-superficie object-cover"
+                    className="aspect-[4/3] w-full rounded-nucleo bg-hundido object-cover shadow-suave"
                   />
                 ) : (
-                  <div className="flex aspect-[4/3] w-full items-center justify-center rounded-2xl border border-borde bg-superficie px-6 text-center text-sm text-tinta-suave">
+                  <div className="bisel-nucleo flex aspect-[4/3] w-full items-center justify-center px-6 text-center text-sm text-tinta-suave">
                     No pudimos mostrar la foto, pero está guardada.
                   </div>
                 )}
@@ -358,7 +352,7 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
                   type="button"
                   onClick={quitarFoto}
                   aria-label="Quitar foto"
-                  className={`absolute top-2 right-2 flex size-12 items-center justify-center rounded-full bg-tinta/70 text-sobre-primario backdrop-blur hover:bg-tinta/85 active:bg-tinta/90 ${foco}`}
+                  className="foco absolute top-3.5 right-3.5 flex size-12 items-center justify-center rounded-full bg-tinta/65 text-sobre-primario shadow-[inset_0_1px_0_rgb(255_255_255/0.2)] transition-[background-color,transform] duration-300 ease-premium hover:bg-tinta/80 active:scale-95 motion-reduce:transition-none"
                 >
                   <IconoCerrar className="size-5" />
                 </button>
@@ -368,17 +362,21 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
                 <button
                   type="button"
                   onClick={() => inputCamara.current?.click()}
-                  className={`flex h-32 flex-col items-center justify-center gap-2 rounded-2xl bg-primario px-3 font-medium text-sobre-primario hover:bg-primario-hover active:bg-primario-hover ${presion} ${foco}`}
+                  className="boton boton-primario foco h-40 flex-col gap-3 rounded-caja px-3"
                 >
-                  <IconoCamara className="size-8" />
+                  <span className="flex size-14 items-center justify-center rounded-full bg-white/15 shadow-[inset_0_1px_0_rgb(255_255_255/0.2)]">
+                    <IconoCamara className="size-7" />
+                  </span>
                   Sacar foto
                 </button>
                 <button
                   type="button"
                   onClick={() => inputGaleria.current?.click()}
-                  className={`flex h-32 flex-col items-center justify-center gap-2 rounded-2xl border border-borde bg-superficie px-3 text-center font-medium text-tinta hover:border-primario/40 active:border-primario/60 ${presion} ${foco}`}
+                  className="boton boton-secundario foco h-40 flex-col gap-3 rounded-caja px-3 text-center"
                 >
-                  <IconoGaleria className="size-8 text-primario" />
+                  <span className="flex size-14 items-center justify-center rounded-full bg-primario-suave text-primario">
+                    <IconoGaleria className="size-7" />
+                  </span>
                   Elegir de la galería
                 </button>
               </div>
@@ -387,7 +385,7 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
             {cuando.antesDeLaFoto && (
               <div
                 role="status"
-                className="mt-3 flex items-center gap-3 rounded-xl bg-primario-suave py-1 pr-1 pl-4 text-sm text-primario transition-opacity duration-200 ease-out starting:opacity-0 motion-reduce:transition-none"
+                className="mt-3 flex items-center gap-3 rounded-2xl bg-primario-suave py-1 pr-1 pl-4 text-sm font-medium text-primario transition-opacity duration-300 ease-premium starting:opacity-0 motion-reduce:transition-none"
               >
                 <IconoReloj className="size-5 shrink-0" />
                 <p className="flex-1 py-2">
@@ -396,7 +394,7 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
                 <button
                   type="button"
                   onClick={() => despachar({ accion: "deshacerFechaDeFoto" })}
-                  className={`h-12 shrink-0 rounded-lg px-3 font-medium underline underline-offset-2 hover:bg-primario/10 ${foco}`}
+                  className="foco h-12 shrink-0 rounded-xl px-3 font-semibold underline underline-offset-2 transition-colors duration-300 ease-premium hover:bg-primario/10"
                 >
                   Deshacer
                 </button>
@@ -406,19 +404,16 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
 
           {/* ── Tipo ── */}
           <fieldset className="min-w-0">
-            <legend className="mb-3 text-sm font-medium">Tipo</legend>
-            <div className="flex flex-wrap gap-x-2 gap-y-3">
+            <legend className="etiqueta mb-3">Tipo</legend>
+            <div className="flex flex-wrap gap-2">
               {TIPOS_COMIDA.map(({ valor, etiqueta }) => {
                 const elegido = cuando.tipo === valor;
                 return (
                   <label
                     key={valor}
-                    // El ::after agranda el área táctil a 48 px sin cambiar el chip.
-                    // Elegido: borde doble (ring interno) además del color, sin cambiar el ancho.
-                    className={`relative cursor-pointer rounded-full border px-4 py-2 text-sm transition-colors select-none after:absolute after:inset-x-0 after:-inset-y-1.5 after:content-[''] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-primario motion-reduce:transition-none ${
-                      elegido
-                        ? "border-primario bg-primario-suave text-primario ring-1 ring-primario ring-inset"
-                        : "border-borde bg-superficie text-tinta hover:border-primario/40 active:bg-primario-suave"
+                    // Chip de 44px. Elegido: verde lleno y en negrita (no solo el color).
+                    className={`chip cursor-pointer select-none has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-primario ${
+                      elegido ? "chip-activo" : "hover:bg-primario-suave"
                     }`}
                   >
                     <input
@@ -439,7 +434,7 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
           {/* ── Fecha y hora ── */}
           <div className="grid grid-cols-2 gap-3">
             <label className="block min-w-0">
-              <span className="mb-1.5 block text-sm font-medium">Fecha</span>
+              <span className="etiqueta mb-2 block">Fecha</span>
               <input
                 type="date"
                 required
@@ -449,11 +444,11 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
                   setError(null);
                   despachar({ accion: "fecha", valor: e.target.value });
                 }}
-                className={`${claseInput} min-w-0 appearance-none [&::-webkit-date-and-time-value]:text-left`}
+                className={claseFechaHora}
               />
             </label>
             <label className="block min-w-0">
-              <span className="mb-1.5 block text-sm font-medium">Hora</span>
+              <span className="etiqueta mb-2 block">Hora</span>
               <input
                 type="time"
                 required
@@ -462,7 +457,7 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
                   setError(null);
                   despachar({ accion: "hora", valor: e.target.value });
                 }}
-                className={`${claseInput} min-w-0 appearance-none [&::-webkit-date-and-time-value]:text-left`}
+                className={claseFechaHora}
               />
             </label>
           </div>
@@ -470,7 +465,7 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
           {/* ── Descripción ── */}
           <div>
             <div className="mb-1 flex items-center justify-between gap-2">
-              <label htmlFor="descripcion" className="text-sm font-medium">
+              <label htmlFor="descripcion" className="etiqueta">
                 Descripción{" "}
                 {foto && <span className="font-normal text-tinta-suave">(opcional)</span>}
               </label>
@@ -481,7 +476,7 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
                   setDescripcion(t.slice(0, 2000));
                 }}
                 onError={setError}
-                className={`-mr-3 ${foco}`}
+                className="foco -mr-1"
               />
             </div>
             <textarea
@@ -499,34 +494,42 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
                   ? "¿Qué tomaste? Ej: 1 vaso de agua, café con leche, 2 cervezas"
                   : "¿Qué comiste? Ej: 2 tostadas con queso y café con leche"
               }
-              className="block min-h-24 w-full resize-y rounded-xl border border-borde bg-superficie px-4 py-3 text-base outline-none placeholder:text-tinta-suave focus:border-primario focus:ring-2 focus:ring-primario/20"
+              className="campo min-h-28 resize-y"
             />
           </div>
         </fieldset>
 
         {/* ── Guardar (siempre a mano) ── */}
-        <div className="sticky bottom-0 z-10 -mx-4 mt-6 border-t border-borde bg-fondo/95 px-4 pt-3 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))] backdrop-blur">
+        {/* Isla flotante: se despega del borde de abajo, vidrio sobre el formulario. */}
+        <div className="sticky bottom-0 z-10 mt-8 pt-2 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))]">
           {error && (
-            <p role="alert" className="mb-3 rounded-xl bg-peligro-suave px-4 py-3 text-sm text-peligro">
+            <p
+              role="alert"
+              className="mb-3 rounded-2xl bg-peligro-suave px-4 py-3 text-sm font-medium text-peligro shadow-suave"
+            >
               {error}
             </p>
           )}
           {/* Mientras guarda no se "apaga": sigue sólido y con spinner, para que se lea como progreso. */}
-          <button
-            type="submit"
-            disabled={ocupado || procesandoFoto}
-            className={`flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primario px-5 font-medium text-sobre-primario hover:bg-primario-hover disabled:cursor-default ${
-              guardandoAhora ? "" : "active:bg-primario-hover disabled:opacity-50"
-            } ${presion} ${foco}`}
-          >
-            {guardandoAhora && (
-              <span
-                aria-hidden="true"
-                className="size-4 animate-spin rounded-full border-2 border-sobre-primario border-t-transparent"
-              />
-            )}
-            {textoBoton}
-          </button>
+          <div className="isla rounded-full p-1.5">
+            <button
+              type="submit"
+              disabled={ocupado || procesandoFoto}
+              className={`boton boton-primario foco group w-full justify-between px-2 text-[1.0625rem] ${
+                guardandoAhora ? "" : "disabled:opacity-50"
+              }`}
+            >
+              <span aria-hidden="true" className="size-10 shrink-0" />
+              {textoBoton}
+              <span aria-hidden="true" className="boton-icono">
+                {guardandoAhora ? (
+                  <span className="size-4 animate-spin rounded-full border-2 border-sobre-primario border-t-transparent motion-reduce:animate-none" />
+                ) : (
+                  <IconoListo className="size-5" />
+                )}
+              </span>
+            </button>
+          </div>
         </div>
       </form>
 
@@ -539,9 +542,9 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
               onKeyDown={(e) => {
                 if (e.key === "Escape" && !ocupado) cancelarBorrado();
               }}
-              className="rounded-2xl border border-peligro/25 bg-peligro-suave p-4"
+              className="rounded-caja bg-peligro-suave p-5 shadow-[inset_0_0_0_1px_rgb(179_38_30/0.15)]"
             >
-              <p id="confirmar-borrado" className="font-medium text-peligro">
+              <p id="confirmar-borrado" className="font-display text-lg font-bold tracking-tight text-peligro">
                 ¿Eliminar este registro?
               </p>
               <p className="mt-1 text-sm text-tinta">
@@ -553,7 +556,7 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
                   type="button"
                   onClick={cancelarBorrado}
                   disabled={ocupado}
-                  className={`h-12 rounded-xl border border-borde bg-superficie px-4 font-medium hover:border-tinta-suave/40 disabled:opacity-50 ${presion} ${foco}`}
+                  className="boton boton-secundario foco px-4 disabled:opacity-50"
                 >
                   Cancelar
                 </button>
@@ -561,7 +564,7 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
                   type="button"
                   onClick={eliminar}
                   disabled={ocupado}
-                  className={`h-12 rounded-xl bg-peligro px-4 font-medium text-sobre-primario outline-none hover:bg-peligro/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-peligro disabled:opacity-70 ${presion}`}
+                  className="boton boton-peligro px-4 outline-none hover:bg-peligro/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-peligro disabled:opacity-70"
                 >
                   {fase === "eliminando" || fase === "listo" ? "Eliminando…" : "Eliminar registro"}
                 </button>
@@ -573,7 +576,7 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
               type="button"
               onClick={() => setConfirmandoBorrado(true)}
               disabled={ocupado}
-              className="h-12 w-full rounded-xl px-4 font-medium text-peligro outline-none transition-colors hover:bg-peligro-suave focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-peligro active:bg-peligro-suave disabled:opacity-50 motion-reduce:transition-none"
+              className="boton w-full px-4 text-peligro outline-none hover:bg-peligro-suave focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-peligro active:bg-peligro-suave disabled:opacity-50"
             >
               Eliminar registro
             </button>

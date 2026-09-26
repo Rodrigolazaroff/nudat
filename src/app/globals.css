@@ -1,43 +1,383 @@
 @import "tailwindcss";
 
-/* Paleta de nudat. Usar siempre estos tokens (bg-fondo, text-tinta, bg-primario, etc.),
-   nunca colores sueltos de Tailwind, así todas las pantallas se ven igual. */
+/* ─────────────────────────────────────────────────────────────────────────────
+   Sistema visual de nudat. Documentado en DESIGN.md (leerlo antes de tocar pantallas).
+   Usar siempre estos tokens (bg-fondo, text-tinta, bg-primario, shadow-flotante,
+   rounded-caja, ease-premium…) y las clases de componente de abajo (.boton-primario,
+   .bisel, .campo, .chip…), nunca colores sueltos de Tailwind.
+   ───────────────────────────────────────────────────────────────────────────── */
 :root {
-  --fondo: #f7f5f0;          /* fondo general, crema cálido */
-  --superficie: #ffffff;     /* tarjetas, inputs */
-  --tinta: #1d2420;          /* texto principal */
-  --tinta-suave: #5d6660;    /* texto secundario */
-  --borde: #e3dfd6;
-  --primario: #2f6b4f;       /* verde: acciones principales */
-  --primario-hover: #255740;
-  --primario-suave: #e4efe8; /* fondos de chips/estados */
+  /* Superficies: crema cálido en capas (fondo < hundido < superficie). */
+  --fondo: #f4f1e9;            /* fondo general */
+  --hundido: #ebe6da;          /* bandeja externa del bisel, pistas, esqueletos */
+  --superficie: #fffdf8;       /* núcleo de tarjetas, inputs */
+  --borde: #e0dace;            /* líneas finas (hairlines) */
+
+  /* Tintas (texto). tinta-suave cumple AA sobre fondo, hundido y superficie. */
+  --tinta: #14201a;
+  --tinta-suave: #545e57;
+
+  /* Marca: verde principal (el del logo) y naranja de acento. */
+  --primario: #2f6b4f;
+  --primario-hover: #265a42;
+  --primario-profundo: #173628; /* barra de navegación, superficies oscuras */
+  --primario-suave: #e2ede6;    /* fondos de chips/estados */
   --sobre-primario: #ffffff;
-  --acento: #d9822b;         /* detalles puntuales */
+  --sobre-profundo-suave: #b8c7bd; /* texto secundario sobre primario-profundo (AA) */
+  --acento: #d9822b;            /* solo relleno/detalle, NO texto chico (no llega a AA) */
+  --acento-suave: #f7e6d2;
+  --acento-tinta: #92500f;      /* texto naranja legible (AA sobre claros) */
   --peligro: #b3261e;
   --peligro-suave: #fbe9e7;
+
+  /* Profundidad: sombras largas y difusas, teñidas de verde, nunca grises duras. */
+  --sombra-suave: 0 1px 2px rgb(20 32 26 / 0.04), 0 6px 20px -8px rgb(20 32 26 / 0.1);
+  --sombra-flotante: 0 1px 2px rgb(20 32 26 / 0.05), 0 18px 40px -14px rgb(20 32 26 / 0.22);
+  --sombra-boton: inset 0 1px 0 rgb(255 255 255 / 0.18), 0 10px 24px -10px rgb(47 107 79 / 0.65);
+  --brillo-interno: inset 0 1px 0 rgb(255 255 255 / 0.9);
+
+  /* Radios: caja (bisel externo) y núcleo concéntrico (caja − 6px de padding). */
+  --radio-caja: 1.75rem;
+  --radio-nucleo: calc(1.75rem - 0.375rem);
+  --radio-campo: 1rem;
+
+  /* Movimiento: curva con masa (arranca rápido, frena suave). */
+  --curva: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 @theme inline {
   --color-fondo: var(--fondo);
+  --color-hundido: var(--hundido);
   --color-superficie: var(--superficie);
   --color-tinta: var(--tinta);
   --color-tinta-suave: var(--tinta-suave);
   --color-borde: var(--borde);
   --color-primario: var(--primario);
   --color-primario-hover: var(--primario-hover);
+  --color-primario-profundo: var(--primario-profundo);
   --color-primario-suave: var(--primario-suave);
   --color-sobre-primario: var(--sobre-primario);
+  --color-sobre-profundo-suave: var(--sobre-profundo-suave);
   --color-acento: var(--acento);
+  --color-acento-suave: var(--acento-suave);
+  --color-acento-tinta: var(--acento-tinta);
   --color-peligro: var(--peligro);
   --color-peligro-suave: var(--peligro-suave);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  --font-sans: var(--font-texto), system-ui, sans-serif;
+  --font-display: var(--font-titulos), var(--font-texto), system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --shadow-suave: var(--sombra-suave);
+  --shadow-flotante: var(--sombra-flotante);
+  --shadow-boton: var(--sombra-boton);
+
+  --radius-caja: var(--radio-caja);
+  --radius-nucleo: var(--radio-nucleo);
+  --radius-campo: var(--radio-campo);
+
+  --ease-premium: var(--curva);
+}
+
+html {
+  background: var(--fondo);
 }
 
 body {
-  background: var(--fondo);
   color: var(--tinta);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-texto), system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Atmósfera: dos resplandores de marca (verde arriba, naranja a un costado) y grano de papel.
+   Fijos, sin eventos, detrás de todo: no repintan al scrollear. */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+body::before {
+  background:
+    radial-gradient(60rem 26rem at 50% -8rem, rgb(47 107 79 / 0.13), transparent 70%),
+    radial-gradient(28rem 22rem at 110% 18%, rgb(217 130 43 / 0.09), transparent 70%);
+}
+body::after {
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ─── Componentes ──────────────────────────────────────────────────────────── */
+@layer components {
+  /* Foco de teclado: el mismo anillo verde en toda la app. */
+  .foco {
+    outline: none;
+  }
+  .foco:focus-visible {
+    outline: 2px solid var(--primario);
+    outline-offset: 3px;
+  }
+
+  /* Botones: píldoras. Base común + variante. Se hunden apenas al tocar. */
+  .boton {
+    display: inline-flex;
+    min-height: 3.5rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    padding-inline: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    transition:
+      transform 300ms var(--curva),
+      background-color 300ms var(--curva),
+      box-shadow 300ms var(--curva),
+      opacity 200ms var(--curva);
+  }
+  .boton:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+  .boton:disabled {
+    cursor: default;
+  }
+  .boton-primario {
+    background: var(--primario);
+    color: var(--sobre-primario);
+    box-shadow: var(--sombra-boton);
+  }
+  .boton-primario:hover:not(:disabled) {
+    background: var(--primario-hover);
+  }
+  .boton-secundario {
+    background: var(--superficie);
+    color: var(--tinta);
+    box-shadow: var(--brillo-interno), 0 0 0 1px var(--borde), var(--sombra-suave);
+  }
+  .boton-secundario:hover:not(:disabled) {
+    background: #ffffff;
+    box-shadow: var(--brillo-interno), 0 0 0 1px rgb(47 107 79 / 0.3), var(--sombra-suave);
+  }
+  .boton-fantasma {
+    color: var(--primario);
+  }
+  .boton-fantasma:hover:not(:disabled) {
+    background: var(--primario-suave);
+  }
+  .boton-peligro {
+    background: var(--peligro);
+    color: var(--sobre-primario);
+  }
+
+  /* Ícono anidado del botón (botón dentro del botón): va pegado al borde derecho. */
+  .boton-icono {
+    display: flex;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: rgb(255 255 255 / 0.16);
+    transition: transform 400ms var(--curva);
+  }
+  .boton-secundario .boton-icono {
+    background: var(--primario-suave);
+    color: var(--primario);
+  }
+  .group:hover .boton-icono {
+    transform: translateX(2px) scale(1.05);
+  }
+
+  /* Botón redondo chico (volver, día anterior/siguiente, cerrar). 44px. */
+  .boton-circulo {
+    display: flex;
+    width: 2.75rem;
+    height: 2.75rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: var(--superficie);
+    color: var(--tinta);
+    box-shadow: var(--brillo-interno), 0 0 0 1px var(--borde), var(--sombra-suave);
+    transition:
+      transform 300ms var(--curva),
+      box-shadow 300ms var(--curva);
+  }
+  .boton-circulo:hover {
+    box-shadow: var(--brillo-interno), 0 0 0 1px rgb(47 107 79 / 0.3), var(--sombra-suave);
+  }
+  .boton-circulo:active {
+    transform: scale(0.94);
+  }
+
+  /* Bisel doble: bandeja externa (hundida, hairline) + núcleo con su propio brillo.
+     Uso: <div class="bisel"><div class="bisel-nucleo p-5">…</div></div> */
+  .bisel {
+    border-radius: var(--radio-caja);
+    background: rgb(20 32 26 / 0.035);
+    padding: 0.375rem;
+    box-shadow: inset 0 0 0 1px rgb(20 32 26 / 0.06);
+  }
+  .bisel-nucleo {
+    border-radius: var(--radio-nucleo);
+    background: var(--superficie);
+    box-shadow: var(--brillo-interno), 0 0 0 1px rgb(20 32 26 / 0.04), var(--sombra-suave);
+  }
+
+  /* Isla de vidrio: solo para elementos fijos o sticky (header, barra de guardar). */
+  .isla {
+    background: rgb(255 253 248 / 0.78);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    backdrop-filter: blur(20px) saturate(1.4);
+    box-shadow: var(--brillo-interno), 0 0 0 1px rgb(20 32 26 / 0.07), var(--sombra-flotante);
+  }
+
+  /* Campos de texto: 56px, núcleo claro sobre hairline; foco con halo verde. */
+  .campo {
+    display: block;
+    width: 100%;
+    min-height: 3.5rem;
+    border-radius: var(--radio-campo);
+    background: var(--superficie);
+    padding: 0 1rem;
+    font-size: 1rem;
+    color: var(--tinta);
+    outline: none;
+    box-shadow: inset 0 1px 2px rgb(20 32 26 / 0.05), 0 0 0 1px var(--borde);
+    transition: box-shadow 250ms var(--curva);
+  }
+  .campo::placeholder {
+    color: var(--tinta-suave);
+  }
+  .campo:focus {
+    box-shadow: 0 0 0 1.5px var(--primario), 0 0 0 5px rgb(47 107 79 / 0.14);
+  }
+  .campo:read-only {
+    background: var(--hundido);
+    color: var(--tinta-suave);
+  }
+  textarea.campo {
+    padding-block: 0.875rem;
+    line-height: 1.5;
+  }
+
+  .etiqueta {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--tinta);
+  }
+
+  /* Chips (opciones, estados). Elegido: verde lleno, no solo cambio de borde. */
+  .chip {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    border-radius: 9999px;
+    padding-inline: 1.125rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    background: var(--superficie);
+    color: var(--tinta);
+    box-shadow: 0 0 0 1px var(--borde);
+    transition:
+      background-color 250ms var(--curva),
+      color 250ms var(--curva),
+      box-shadow 250ms var(--curva),
+      transform 250ms var(--curva);
+  }
+  .chip:active {
+    transform: scale(0.96);
+  }
+  .chip-activo {
+    background: var(--primario);
+    color: var(--sobre-primario);
+    font-weight: 600;
+    box-shadow: var(--sombra-boton);
+  }
+
+  /* Pastilla informativa (no interactiva): conteos, estados. */
+  .pastilla {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border-radius: 9999px;
+    padding: 0.3125rem 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    background: var(--primario-suave);
+    color: var(--primario);
+  }
+
+  /* Título grande de pantalla (display). */
+  .titulo-pantalla {
+    font-family: var(--font-titulos), var(--font-texto), system-ui, sans-serif;
+    font-size: 2.5rem;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    color: var(--tinta);
+  }
+}
+
+/* ─── Movimiento ───────────────────────────────────────────────────────────── */
+
+/* Entrada: sube y aparece. Escalonar con style={{ "--i": n }} (n = 0, 1, 2…). */
+@keyframes entrar {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+.entrar {
+  animation: entrar 600ms var(--curva) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+/* Esqueleto: brillo que pasa (en vez de parpadeo). */
+@keyframes brillo {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+.esqueleto {
+  background: linear-gradient(90deg, var(--hundido) 30%, #f6f2ea 50%, var(--hundido) 70%) 0 0 / 200% 100%;
+  animation: brillo 1.4s var(--curva) infinite;
+}
+
+/* Onda del dictado por voz (boton-dictar.tsx). */
+@keyframes onda {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+.onda-barra {
+  animation: onda 900ms var(--curva) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entrar,
+  .esqueleto {
+    animation: none;
+  }
+  .onda-barra { animation: none; transform: scaleY(0.6); }
+  .boton,
+  .boton-circulo,
+  .chip,
+  .boton-icono,
+  .campo {
+    transition: none;
+  }
+  .boton:active:not(:disabled),
+  .boton-circulo:active,
+  .chip:active {
+    transform: none;
+  }
 }
 
 /* Impresión (la hoja de /semana): papel blanco y texto oscuro. No se depende de fondos,
@@ -48,16 +388,8 @@ body {
     background: #ffffff;
     color: var(--tinta);
   }
-}
-
-/* Onda del dictado por voz (boton-dictar.tsx). */
-@keyframes onda {
-  0%, 100% { transform: scaleY(0.3); }
-  50% { transform: scaleY(1); }
-}
-.onda-barra {
-  animation: onda 900ms ease-in-out infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-  .onda-barra { animation: none; transform: scaleY(0.6); }
+  body::before,
+  body::after {
+    display: none;
+  }
 }

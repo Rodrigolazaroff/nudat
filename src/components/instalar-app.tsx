@@ -140,9 +140,6 @@ async function instalar() {
 
 // --- UI ---
 
-const foco =
-  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primario";
-
 export function InstalarApp() {
   const { evento: eventoActual, instalada, iosSafari, descartada } = useSyncExternalStore(
     suscribir,
@@ -157,41 +154,39 @@ export function InstalarApp() {
     <section
       aria-labelledby="instalar-app-titulo"
       // Aparece recién después de hidratar: entra con un fundido corto en vez de "saltar".
-      className="relative mt-4 rounded-2xl border border-borde bg-superficie p-4 transition-opacity duration-200 ease-out starting:opacity-0 motion-reduce:transition-none"
+      className="bisel relative mt-5 transition-[opacity,translate] duration-500 ease-premium starting:translate-y-2 starting:opacity-0 motion-reduce:transition-none"
     >
-      <div className="flex items-start gap-3 pr-10">
-        <Isotipo className="size-12 shrink-0" />
-        <div className="min-w-0">
-          <h2 id="instalar-app-titulo" className="font-medium">
-            Instalar nudat
-          </h2>
-          <p className="mt-0.5 text-sm text-pretty text-tinta-suave">
-            {eventoActual
-              ? "Agregala a tu pantalla de inicio para cargar más rápido."
-              : "Tocá Compartir y después “Agregar a inicio” para tenerla a mano."}
-          </p>
+      <div className="bisel-nucleo p-4">
+        <div className="flex items-center gap-3.5 pr-10">
+          <Isotipo className="size-12 shrink-0 drop-shadow-[0_6px_10px_rgb(23_54_40/0.25)]" />
+          <div className="min-w-0">
+            <h2 id="instalar-app-titulo" className="font-display text-lg font-bold tracking-tight">
+              Instalar nudat
+            </h2>
+            {eventoActual ? null : (
+              <p className="mt-0.5 text-sm text-pretty text-tinta-suave">
+                Tocá Compartir y después “Agregar a inicio”.
+              </p>
+            )}
+          </div>
         </div>
-      </div>
 
-      {eventoActual ? (
+        {eventoActual ? (
+          <button type="button" onClick={instalar} className="boton boton-primario foco mt-4 w-full">
+            Instalar app
+          </button>
+        ) : null}
+
         <button
           type="button"
-          onClick={instalar}
-          className={`mt-3 inline-flex h-12 w-full items-center justify-center rounded-xl bg-primario px-5 font-medium text-sobre-primario transition-colors hover:bg-primario-hover active:bg-primario-hover ${foco}`}
+          onClick={descartar}
+          aria-label="No mostrar más"
+          title="No mostrar más"
+          className="foco absolute top-3 right-3 flex size-11 items-center justify-center rounded-full text-tinta-suave transition-colors duration-300 ease-premium hover:bg-hundido hover:text-tinta"
         >
-          Instalar app
+          <IconoCerrar className="size-5" />
         </button>
-      ) : null}
-
-      <button
-        type="button"
-        onClick={descartar}
-        aria-label="No mostrar más"
-        title="No mostrar más"
-        className={`absolute top-2 right-2 flex size-11 items-center justify-center rounded-full text-tinta-suave transition-colors hover:bg-fondo hover:text-tinta active:bg-borde/60 ${foco}`}
-      >
-        <IconoCerrar className="size-5" />
-      </button>
+      </div>
     </section>
   );
 }

@@ -52,7 +52,6 @@ export function FormRegistro() {
   return (
     <PantallaAuth
       titulo="Creá tu cuenta"
-      bajada={<p>Anotá lo que comés y tomás cada día, con foto y horario.</p>}
       pie={
         <p>
           ¿Ya tenés cuenta?{" "}
