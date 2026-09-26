@@ -3,8 +3,14 @@ import type { CSSProperties } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { obtenerPerfil } from "@/lib/perfil";
-import { hoyISO } from "@/lib/comidas";
-import { calcularResumen, esFechaValida, sumarDias, ubicarComidas } from "@/lib/resumen";
+import { horaActual, hoyISO } from "@/lib/comidas";
+import {
+  calcularResumen,
+  diaAlimentario,
+  esFechaValida,
+  sumarDias,
+  ubicarComidas,
+} from "@/lib/resumen";
 import { firmarFotos } from "@/components/comidas/firmar-fotos";
 import { IconoMas, IconoSemana, IconoVolver } from "@/components/comidas/iconos";
 import { BotonImprimir } from "@/components/semana/boton-imprimir";
@@ -30,11 +36,13 @@ const escalon = (i: number) => ({ "--i": i }) as CSSProperties;
 
 /** Período: 7 días. Por defecto, los últimos 7 terminando hoy; nunca más adelante. */
 function periodo(consulta: Record<string, string | string[] | undefined>) {
-  const hoy = hoyISO();
+  const hoyCalendario = hoyISO();
+  // Día alimentario, igual que /resumen: de madrugada "hoy" sigue siendo ayer.
+  const hoy = diaAlimentario(hoyCalendario, horaActual())?.dia ?? hoyCalendario;
   const desdeUltimos = sumarDias(hoy, -6);
   const pedido = Array.isArray(consulta.desde) ? consulta.desde[0] : consulta.desde;
   const desde = pedido && esFechaValida(pedido) && pedido < desdeUltimos ? pedido : desdeUltimos;
-  return { hoy, desdeUltimos, desde, hasta: sumarDias(desde, 6) };
+  return { hoy, hoyCalendario, desdeUltimos, desde, hasta: sumarDias(desde, 6) };
 }
 
 // Momento en que se firmaron las URLs de las fotos (duran 1 hora).
@@ -52,7 +60,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
 export default async function PaginaSemana({ searchParams }: Props) {
   const [perfil, consulta] = await Promise.all([obtenerPerfil(), searchParams]);
-  const { hoy, desdeUltimos, desde, hasta } = periodo(consulta);
+  const { hoy, hoyCalendario, desdeUltimos, desde, hasta } = periodo(consulta);
 
   const supabase = await createClient();
   // Hasta el día siguiente: lo comido de madrugada cuenta para el último día del período.
@@ -113,7 +121,7 @@ export default async function PaginaSemana({ searchParams }: Props) {
                 <p className="text-sm">Del {rangoFechasConAnio(desde, hasta)}</p>
               </div>
               <p className="shrink-0 text-right text-xs text-tinta-suave">
-                Generado el {fechaNumerica(hoy)} con nudat
+                Generado el {fechaNumerica(hoyCalendario)} con nudat
               </p>
             </div>
           </div>
