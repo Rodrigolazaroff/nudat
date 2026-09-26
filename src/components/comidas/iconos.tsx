@@ -114,3 +114,19 @@ export const IconoResumen = (p: P) => (
     <path d="M14.5 3.3a7.5 7.5 0 0 1 6.2 6.2h-6.2z" />
   </Icono>
 );
+
+// Luna creciente: registros de madrugada (antes de las 05:00, cuentan para el día anterior).
+export const IconoLuna = (p: P) => (
+  <Icono {...p}>
+    <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />
+  </Icono>
+);
+
+// Impresora: acciones de imprimir o guardar en PDF.
+export const IconoImprimir = (p: P) => (
+  <Icono {...p}>
+    <path d="M7 9V3.5h10V9" />
+    <path d="M7 17.5H5a2 2 0 0 1-2-2V11a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4.5a2 2 0 0 1-2 2h-2" />
+    <rect x="7" y="14" width="10" height="6.5" rx="1" />
+  </Icono>
+);

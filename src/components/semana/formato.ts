@@ -50,6 +50,53 @@ export function rangoFechas(desde: string, hasta: string): string {
   return `${a.dia} al ${b.dia} de ${MESES[b.mes - 1]}`;
 }
 
+/** "lunes 22/9/2026" (encabezado de cada día en la hoja impresa). */
+export function fechaConAnio(fecha: string): string {
+  const p = partes(fecha);
+  return `${DIAS[p.semana]} ${p.dia}/${p.mes}/${p.anio}`;
+}
+
+/** "25/09/2026" */
+export function fechaNumerica(fecha: string): string {
+  const p = partes(fecha);
+  return `${String(p.dia).padStart(2, "0")}/${String(p.mes).padStart(2, "0")}/${p.anio}`;
+}
+
+/** Como rangoFechas, pero siempre con año: "15 al 21 de septiembre de 2026". */
+export function rangoFechasConAnio(desde: string, hasta: string): string {
+  const a = partes(desde);
+  const b = partes(hasta);
+  if (a.anio !== b.anio) return rangoFechas(desde, hasta);
+  return `${rangoFechas(desde, hasta)} de ${b.anio}`;
+}
+
+/** Corto, para títulos y nombres de archivo: "15 al 21 sep 2026", "29 sep al 5 oct 2026". */
+export function rangoFechasCorto(desde: string, hasta: string): string {
+  const a = partes(desde);
+  const b = partes(hasta);
+  const mes = (m: number) => MESES[m - 1].slice(0, 3);
+  if (a.anio !== b.anio) return `${a.dia} ${mes(a.mes)} ${a.anio} al ${b.dia} ${mes(b.mes)} ${b.anio}`;
+  if (a.mes !== b.mes) return `${a.dia} ${mes(a.mes)} al ${b.dia} ${mes(b.mes)} ${b.anio}`;
+  return `${a.dia} al ${b.dia} ${mes(b.mes)} ${b.anio}`;
+}
+
+/** Registro de pasada la medianoche: "madrugada del mar 23/9" (con la fecha real). */
+export function madrugadaDel(fechaReal: string): string {
+  return `madrugada del ${fechaCorta(fechaReal)}`;
+}
+
+/** "3 comidas · 1 bebida"; "Sin registros" si no hay nada. */
+export function conteoDia(comidas: number, bebidas: number): string {
+  if (comidas + bebidas === 0) return "Sin registros";
+  return `${plural(comidas, "comida", "comidas")} · ${plural(bebidas, "bebida", "bebidas")}`;
+}
+
+/** Conteo de un día a partir de sus registros: "2 comidas · 1 bebida". */
+export function conteoDeDia(registros: readonly { tipo: string }[]): string {
+  const bebidas = registros.filter((r) => r.tipo === "bebida").length;
+  return conteoDia(registros.length - bebidas, bebidas);
+}
+
 /** "08:30:00" → "08:30" */
 export function horaCorta(hora: string): string {
   return hora.slice(0, 5);

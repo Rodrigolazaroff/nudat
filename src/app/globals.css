@@ -39,3 +39,13 @@ body {
   color: var(--tinta);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
+
+/* Impresión (la hoja de /semana): papel blanco y texto oscuro. No se depende de fondos,
+   que los navegadores no imprimen por defecto; bordes y líneas usan tinta/tinta-suave. */
+@media print {
+  html,
+  body {
+    background: #ffffff;
+    color: var(--tinta);
+  }
+}

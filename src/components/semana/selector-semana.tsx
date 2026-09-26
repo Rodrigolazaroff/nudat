@@ -3,6 +3,9 @@ import { fechaCorta } from "./formato";
 import { IndicadorLink } from "./indicador-link";
 import { ui } from "./ui";
 
+// botonChico mide 40px; en el selector (uso con el pulgar) se lleva a 44px.
+const tactil = "min-h-11 min-w-11";
+
 export function SelectorSemana({
   desde,
   hasta,
@@ -23,7 +26,7 @@ export function SelectorSemana({
       aria-label="Cambiar semana"
       className="flex items-center justify-between gap-2 rounded-2xl border border-borde bg-superficie p-2 print:hidden"
     >
-      <Link href={hrefAnterior} scroll={false} className={ui.botonChico}>
+      <Link href={hrefAnterior} scroll={false} className={`${ui.botonChico} ${tactil}`}>
         <IndicadorLink />
         <span aria-hidden="true">‹</span>
         <span className="sr-only sm:not-sr-only">Semana anterior</span>
@@ -37,7 +40,8 @@ export function SelectorSemana({
           <Link
             href={hrefUltimos}
             scroll={false}
-            className={`rounded text-xs font-medium text-primario underline-offset-4 hover:underline ${ui.foco}`}
+            // Área táctil de 44px sin agrandar la barra: el margen negativo la compensa.
+            className={`-my-3 inline-flex min-h-11 items-center rounded px-2 text-xs font-medium text-primario underline-offset-4 hover:underline ${ui.foco}`}
           >
             Ir a los últimos 7 días
           </Link>
@@ -47,13 +51,13 @@ export function SelectorSemana({
       </div>
 
       {hrefSiguiente ? (
-        <Link href={hrefSiguiente} scroll={false} className={ui.botonChico}>
+        <Link href={hrefSiguiente} scroll={false} className={`${ui.botonChico} ${tactil}`}>
           <span className="sr-only sm:not-sr-only">Semana siguiente</span>
           <span aria-hidden="true">›</span>
           <IndicadorLink />
         </Link>
       ) : (
-        <span aria-disabled="true" className={`${ui.botonChico} cursor-not-allowed opacity-40`}>
+        <span aria-disabled="true" className={`${ui.botonChico} ${tactil} cursor-not-allowed opacity-40`}>
           <span className="sr-only sm:not-sr-only">Semana siguiente</span>
           <span aria-hidden="true">›</span>
           <span aria-hidden="true" className="size-3" />

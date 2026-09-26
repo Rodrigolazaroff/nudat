@@ -13,9 +13,10 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
   const perfil = await obtenerPerfil();
 
   return (
-    <div className="flex min-h-dvh flex-1 flex-col bg-fondo text-tinta">
-      <header className="sticky top-0 z-20 border-b border-borde bg-fondo/95 pt-[env(safe-area-inset-top)] backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-lg items-center justify-between gap-3 px-4">
+    <div className="group/app flex min-h-dvh flex-1 flex-col bg-fondo text-tinta print:min-h-0 print:bg-superficie">
+      <header className="sticky top-0 z-20 border-b border-borde bg-fondo/95 pt-[env(safe-area-inset-top)] backdrop-blur print:hidden">
+        {/* Se alinea al contenido: angosto por defecto, ancho si la página lo pide (/semana). */}
+        <div className="mx-auto flex h-14 max-w-lg items-center justify-between gap-3 px-4 group-has-[[data-ancho=completo]]/app:max-w-5xl">
           <Link
             href="/"
             aria-label="nudat, ir a Hoy"
@@ -40,7 +41,7 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
       </header>
 
       {/* El ancho lo define cada grupo: (angosto) para cargar desde el celu, /semana ancho. */}
-      <main className="w-full flex-1 pt-4">{children}</main>
+      <main className="w-full flex-1 pt-4 print:pt-0">{children}</main>
 
       <NavInferior />
     </div>

@@ -22,10 +22,13 @@ export function NavInferior() {
   return (
     <>
       {/* Reserva el alto de la barra fija para que no tape el final del contenido. */}
-      <div aria-hidden="true" className="h-[calc(4rem_+_env(safe-area-inset-bottom))] shrink-0" />
+      <div
+        aria-hidden="true"
+        className="h-[calc(4rem_+_env(safe-area-inset-bottom))] shrink-0 print:hidden"
+      />
       <nav
         aria-label="Secciones"
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-borde bg-superficie pb-[env(safe-area-inset-bottom)]"
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-borde bg-superficie pb-[env(safe-area-inset-bottom)] print:hidden"
       >
         <div className="mx-auto flex h-16 max-w-lg">
           <ItemNav href="/" activo={pathname === "/"} icono={<IconoHoy />}>
@@ -65,15 +68,23 @@ function ItemNav({
   icono: ReactNode;
   children: ReactNode;
 }) {
+  // Activo: píldora detrás del ícono y label en semibold, no solo el color.
+  // Foco: contorno verde por dentro del ítem (la barra está pegada al borde).
   return (
     <Link
       href={href}
       aria-current={activo ? "page" : undefined}
-      className={`flex flex-1 flex-col items-center justify-center gap-0.5 text-xs font-medium outline-none focus-visible:bg-primario-suave ${
-        activo ? "text-primario" : "text-tinta-suave hover:text-tinta"
+      className={`group flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl text-xs outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primario ${
+        activo ? "font-semibold text-primario" : "font-medium text-tinta-suave hover:text-tinta"
       }`}
     >
-      {icono}
+      <span
+        className={`flex h-7 w-14 items-center justify-center rounded-full transition-colors motion-reduce:transition-none ${
+          activo ? "bg-primario-suave" : "group-hover:bg-fondo"
+        }`}
+      >
+        {icono}
+      </span>
       {children}
     </Link>
   );

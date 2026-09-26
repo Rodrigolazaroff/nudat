@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Comida } from "@/lib/database.types";
 import { etiquetaTipo } from "@/lib/comidas";
+import { HORA_CORTE_DIA, minutosDeHora } from "@/lib/resumen";
 import { IconoDerecha, IconoPlato } from "@/components/comidas/iconos";
 
 type Props = {
@@ -12,6 +13,9 @@ export function TarjetaComida({ comida, fotoUrl }: Props) {
   const tipo = etiquetaTipo(comida.tipo);
   const hora = comida.hora.slice(0, 5);
   const descripcion = comida.descripcion.trim();
+  // Antes de las 05:00: en el resumen y en la semana cuenta para el día anterior.
+  const minutos = minutosDeHora(comida.hora);
+  const deMadrugada = minutos !== null && minutos < HORA_CORTE_DIA * 60;
 
   return (
     <Link
@@ -39,6 +43,9 @@ export function TarjetaComida({ comida, fotoUrl }: Props) {
           <span className="truncate font-medium">{tipo}</span>
           <span className="shrink-0 text-sm tabular-nums text-tinta-suave">{hora}</span>
         </div>
+        {deMadrugada ? (
+          <p className="text-xs text-tinta-suave">Cuenta para el día anterior</p>
+        ) : null}
         {descripcion ? (
           <p className="mt-0.5 line-clamp-2 text-sm text-tinta-suave">{descripcion}</p>
         ) : (

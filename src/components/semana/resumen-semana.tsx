@@ -10,9 +10,13 @@ import {
 } from "@/lib/resumen";
 import { fechaCorta, formatearDecimal, plural } from "./formato";
 import { ui } from "./ui";
+import { Voz } from "./voz";
+
+// En papel el borde claro de pantalla casi no se ve: se oscurece al imprimir.
+const tarjeta = `${ui.tarjeta} print:border-tinta-suave`;
 
 function hora(e: Estadistica | null): string {
-  return e ? formatearMinutos(e.promedio) : "—";
+  return e ? formatearMinutos(e.promedio) : "Sin dato";
 }
 
 export function ResumenSemana({ resumen: r }: { resumen: Resumen }) {
@@ -28,20 +32,30 @@ export function ResumenSemana({ resumen: r }: { resumen: Resumen }) {
         <Dato
           titulo="Registros"
           valor={r.totalRegistros}
-          detalle={r.porcentajeConFoto !== null ? `${r.porcentajeConFoto} % con foto` : null}
+          detalle={
+            <>
+              <span className="block">
+                {plural(r.totalComidas, "comida", "comidas")} ·{" "}
+                {plural(r.totalBebidas, "bebida", "bebidas")}
+              </span>
+              {r.porcentajeConFoto !== null ? (
+                <span className="block">{r.porcentajeConFoto} % con foto</span>
+              ) : null}
+            </>
+          }
         />
         <Dato
           titulo="Días con registros"
           valor={`${r.diasConRegistro} de ${r.diasPeriodo}`}
           detalle={
-            r.promedioPorDia !== null
-              ? `${formatearDecimal(r.promedioPorDia)} comidas por día`
+            r.promedioComidasPorDia !== null
+              ? `${formatearDecimal(r.promedioComidasPorDia)} comidas por día, sin contar bebidas`
               : null
           }
         />
         <Dato
           titulo="Ayuno nocturno"
-          valor={ayuno ? formatearDuracion(ayuno.promedio) : "—"}
+          valor={ayuno ? formatearDuracion(ayuno.promedio) : "Sin dato"}
           detalle={
             ayuno
               ? ayuno.cantidad === 1
@@ -50,7 +64,7 @@ export function ResumenSemana({ resumen: r }: { resumen: Resumen }) {
               : "Hacen falta dos días seguidos con registros"
           }
         />
-        <div className={ui.tarjeta}>
+        <div className={tarjeta}>
           <dt className="text-sm text-tinta-suave">Horario promedio</dt>
           <dd className="mt-1 flex items-baseline justify-between gap-2">
             <span className="text-sm">Primera</span>
@@ -64,7 +78,7 @@ export function ResumenSemana({ resumen: r }: { resumen: Resumen }) {
       </dl>
 
       <div className="grid gap-3 lg:grid-cols-3 print:grid-cols-3">
-        <div className={`${ui.tarjeta} lg:col-span-2 print:col-span-2`}>
+        <div className={`${tarjeta} lg:col-span-2 print:col-span-2`}>
           <h3 className="text-sm text-tinta-suave">Por tipo de comida</h3>
           <table className="mt-2 w-full text-sm">
             <thead>
@@ -80,7 +94,7 @@ export function ResumenSemana({ resumen: r }: { resumen: Resumen }) {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-borde">
+            <tbody className="divide-y divide-borde print:divide-tinta-suave">
               {r.porTipo.map((t) => (
                 <tr key={t.tipo}>
                   <th scope="row" className="py-2 pr-2 text-left font-medium">
@@ -93,7 +107,12 @@ export function ResumenSemana({ resumen: r }: { resumen: Resumen }) {
                     ) : null}
                   </td>
                   <td className="py-2 pl-2 text-right tabular-nums">
-                    {t.horario ? (
+                    {t.tipo === "bebida" ? (
+                      // Un promedio de horarios de bebidas no dice nada: se toman a cualquier hora.
+                      <span className="text-tinta-suave">
+                        {t.registros > 0 ? "Varios horarios" : "Sin dato"}
+                      </span>
+                    ) : t.horario ? (
                       <>
                         {formatearMinutos(t.horario.promedio)}
                         {t.horario.cantidad > 1 ? (
@@ -103,7 +122,7 @@ export function ResumenSemana({ resumen: r }: { resumen: Resumen }) {
                         ) : null}
                       </>
                     ) : (
-                      <span className="text-tinta-suave">—</span>
+                      <span className="text-tinta-suave">Sin dato</span>
                     )}
                   </td>
                 </tr>
@@ -113,7 +132,7 @@ export function ResumenSemana({ resumen: r }: { resumen: Resumen }) {
         </div>
 
         <div className="flex flex-col gap-3">
-          <div className={ui.tarjeta}>
+          <div className={tarjeta}>
             <h3 className="text-sm text-tinta-suave">Comidas principales sin registro</h3>
             {r.salteadas.diasEvaluados === 0 ? (
               <p className="mt-2 text-sm text-tinta-suave">Todavía no hay días completos para evaluar.</p>
@@ -131,7 +150,7 @@ export function ResumenSemana({ resumen: r }: { resumen: Resumen }) {
                           {etiquetaTipo(t)}
                         </span>
                         <span className={`tabular-nums ${n > 0 ? "font-semibold" : "text-tinta-suave"}`}>
-                          {n > 0 ? plural(n, "día", "días") : "—"}
+                          {plural(n, "día", "días")}
                         </span>
                       </li>
                     );
@@ -144,10 +163,12 @@ export function ResumenSemana({ resumen: r }: { resumen: Resumen }) {
             )}
           </div>
 
-          <div className={ui.tarjeta}>
+          <div className={tarjeta}>
             <h3 className="text-sm text-tinta-suave">Cenas después de las 22:00</h3>
             {r.cenasTarde.totalCenas === 0 ? (
-              <p className="mt-2 text-sm text-tinta-suave">No registró cenas.</p>
+              <p className="mt-2 text-sm text-tinta-suave">
+                <Voz pantalla="No cargaste cenas." impresion="No registró cenas." />
+              </p>
             ) : (
               <p className="mt-1 text-2xl font-semibold tabular-nums">
                 {r.cenasTarde.cantidad}{" "}
@@ -162,12 +183,18 @@ export function ResumenSemana({ resumen: r }: { resumen: Resumen }) {
 
       <p className="text-xs text-tinta-suave text-pretty">
         Lo que se come antes de las {String(HORA_CORTE_DIA).padStart(2, "0")}:00 cuenta para el día
-        anterior.
-        {r.diaEnCurso
-          ? ` Hoy (${fechaCorta(r.diaEnCurso)}) todavía está en curso: no se cuenta en comidas sin registro ni en la última comida.`
-          : null}
+        anterior. Las bebidas no cuentan para los horarios de comida (primera, última y ayuno).
+        {r.diaEnCurso ? (
+          <>
+            {" "}
+            <Voz
+              pantalla={`Hoy (${fechaCorta(r.diaEnCurso)}) todavía está en curso: no se cuenta en comidas sin registro ni en la última comida.`}
+              impresion={`El día en curso al imprimir (${fechaCorta(r.diaEnCurso)}) no se cuenta en comidas sin registro ni en la última comida.`}
+            />
+          </>
+        ) : null}
         {r.diasSinRegistro.length > 0
-          ? ` Los días sin ningún registro no se cuentan como comidas salteadas.`
+          ? " Los días sin ningún registro no se cuentan como comidas salteadas."
           : null}
       </p>
     </section>
@@ -181,10 +208,10 @@ function Dato({
 }: {
   titulo: string;
   valor: ReactNode;
-  detalle: string | null;
+  detalle: ReactNode;
 }) {
   return (
-    <div className={ui.tarjeta}>
+    <div className={tarjeta}>
       <dt className="text-sm text-tinta-suave">{titulo}</dt>
       <dd className="mt-1 text-xl font-semibold tracking-tight tabular-nums sm:text-2xl">{valor}</dd>
       {detalle ? <dd className="mt-1 text-sm text-tinta-suave tabular-nums">{detalle}</dd> : null}

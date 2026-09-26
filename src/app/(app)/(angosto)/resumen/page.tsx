@@ -3,16 +3,16 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { obtenerPerfil } from "@/lib/perfil";
 import { createClient } from "@/lib/supabase/server";
-import { esBebida, etiquetaTipo, hoyISO } from "@/lib/comidas";
+import { esBebida, etiquetaTipo, horaActual, hoyISO } from "@/lib/comidas";
 import {
   COMIDAS_PRINCIPALES,
   HORA_CORTE_DIA,
   calcularResumen,
-  rachaActual,
+  diaAlimentario,
   registrosPorDia,
   sumarDias,
 } from "@/lib/resumen";
-import { IconoMas, IconoResumen } from "@/components/comidas/iconos";
+import { IconoImprimir, IconoMas, IconoResumen } from "@/components/comidas/iconos";
 import { formatearDecimal, plural, rangoFechas } from "@/components/semana/formato";
 import { ui } from "@/components/semana/ui";
 import { Horarios } from "@/components/resumen/horarios";
@@ -22,9 +22,6 @@ import { TiraConstancia } from "@/components/resumen/tira-constancia";
 
 export const metadata: Metadata = { title: "Resumen" };
 
-// La racha puede ser más larga que el período: se mira hasta 60 días para atrás.
-const DIAS_RACHA = 60;
-
 type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
@@ -33,20 +30,21 @@ export default async function PaginaResumen({ searchParams }: Props) {
   const [perfil, consulta] = await Promise.all([obtenerPerfil(), searchParams]);
 
   const periodo = periodoDeParam(consulta.dias);
-  const hoy = hoyISO();
+  // "Hoy" es el día alimentario: a las 02:00 todavía es el día anterior, así el día
+  // nuevo no aparece vacío y el de ayer no se da por terminado antes de tiempo.
+  const hoyCalendario = hoyISO();
+  const hoy = diaAlimentario(hoyCalendario, horaActual())?.dia ?? hoyCalendario;
   const hasta = hoy;
   const desde = sumarDias(hoy, -(periodo - 1));
-  const desdeRacha = sumarDias(hoy, -(Math.max(DIAS_RACHA, periodo) - 1));
 
-  // Una sola consulta, con lo justo para las cuentas. Hasta mañana: lo comido de
-  // madrugada cuenta para el día anterior (mismo criterio que /semana). Más nuevas
-  // primero: si alguna vez se llegara al tope de filas, se pierde lo más viejo.
+  // Una sola consulta con lo justo para las cuentas. Hasta el día siguiente: lo
+  // comido de madrugada cuenta para el día anterior (mismo criterio que /semana).
   const supabase = await createClient();
   const { data: comidas, error } = await supabase
     .from("comidas")
     .select("fecha, hora, tipo, foto_path")
     .eq("usuario_id", perfil.id)
-    .gte("fecha", desdeRacha)
+    .gte("fecha", desde)
     .lte("fecha", sumarDias(hasta, 1))
     .order("fecha", { ascending: false })
     .order("hora", { ascending: false });
@@ -55,107 +53,123 @@ export default async function PaginaResumen({ searchParams }: Props) {
   // calcularResumen y registrosPorDia descartan solas lo que queda fuera del período.
   const resumen = calcularResumen(comidas, desde, hasta, { hoy });
   const dias = registrosPorDia(comidas, desde, hasta);
-  const racha = rachaActual(comidas, hoy);
-  // Si la racha llega al primer día consultado, puede venir de antes.
-  const rachaAlTope = racha.dias >= DIAS_RACHA - (racha.incluyeHoy ? 0 : 1);
+
+  // Registros de madrugada por día alimentario: en Hoy figuran en el día siguiente.
+  const madrugada: Record<string, number> = {};
+  for (const c of comidas) {
+    const lugar = diaAlimentario(c.fecha, c.hora);
+    if (lugar?.madrugada) madrugada[lugar.dia] = (madrugada[lugar.dia] ?? 0) + 1;
+  }
+
+  // Semana vacía: si hay algo en los últimos 30 días, se ofrece verlo.
+  let hayEn30Dias = false;
+  if (resumen.totalRegistros === 0 && periodo === 7) {
+    const { count } = await supabase
+      .from("comidas")
+      .select("id", { count: "exact", head: true })
+      .eq("usuario_id", perfil.id)
+      .gte("fecha", sumarDias(hoy, -29))
+      .lte("fecha", sumarDias(hoy, 1));
+    hayEn30Dias = (count ?? 0) > 0;
+  }
 
   const bebidas = resumen.porTipo.find((t) => esBebida(t.tipo)) ?? { registros: 0, dias: 0 };
+  // Comidas por día: solo días con alguna comida (un día con un mate solo no baja el promedio).
+  const diasConComida = dias.filter((d) => d.comidas > 0);
+  const totalComidas = diasConComida.reduce((n, d) => n + d.comidas, 0);
   const promedioComidas =
-    resumen.diasConRegistro > 0
-      ? (resumen.totalRegistros - bebidas.registros) / resumen.diasConRegistro
-      : null;
-  const salteadas = COMIDAS_PRINCIPALES.reduce((n, t) => n + resumen.salteadas.porTipo[t], 0);
+    diasConComida.length > 0 ? totalComidas / diasConComida.length : null;
+  const diasEvaluados = resumen.salteadas.diasEvaluados;
+  const vacio = resumen.totalRegistros === 0;
 
   return (
     <div className="flex flex-col gap-6 pb-6">
       <div className="flex flex-col gap-3">
-        <div>
-          <h1 className="text-xl font-semibold">Resumen</h1>
-          <p className="mt-1 text-sm text-tinta-suave">Del {rangoFechas(desde, hasta)}</p>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-xl font-semibold">Resumen</h1>
+            <p className="mt-1 text-sm text-tinta-suave">Del {rangoFechas(desde, hasta)}</p>
+          </div>
+          {vacio ? null : (
+            <Link
+              href="/semana"
+              className={`inline-flex h-11 shrink-0 items-center gap-1.5 rounded-xl border border-borde bg-superficie px-3 text-sm font-medium text-tinta transition-colors hover:bg-fondo motion-reduce:transition-none ${ui.foco}`}
+            >
+              <IconoImprimir className="size-5" />
+              Imprimir semana
+            </Link>
+          )}
         </div>
         <SelectorPeriodo actual={periodo} />
       </div>
 
-      {resumen.totalRegistros === 0 ? (
+      {vacio ? (
         <div className="flex flex-col items-center rounded-2xl border border-dashed border-borde bg-superficie px-6 py-10 text-center">
           <div className="flex size-16 items-center justify-center rounded-full bg-primario-suave text-primario">
             <IconoResumen className="size-8" />
           </div>
-          <h2 className="mt-4 font-medium">No cargaste nada en los últimos {periodo} días</h2>
+          <h2 className="mt-4 font-medium text-balance">
+            No cargaste nada en los últimos {periodo} días
+          </h2>
           <p className="mt-1 max-w-xs text-sm text-tinta-suave text-pretty">
-            Cuando cargues lo que comés y tomás, acá vas a ver cómo venís: cuántos días registraste,
-            tus horarios y qué comidas te faltan.
+            {hayEn30Dias
+              ? "En los últimos 30 días sí hay registros. Podés verlos o cargar lo que comiste hoy."
+              : "Cuando cargues lo que comés y tomás, acá vas a ver qué comidas cargaste cada día y en qué horarios."}
           </p>
-          <Link href="/nueva" className={`${ui.botonPrimario} mt-5`}>
-            <IconoMas className="size-5" />
-            Cargar algo
-          </Link>
+          <div className="mt-5 flex w-full max-w-xs flex-col gap-2">
+            <Link href="/nueva" className={ui.botonPrimario}>
+              <IconoMas className="size-5" />
+              Cargar una comida
+            </Link>
+            {hayEn30Dias ? (
+              <Link href="/resumen?dias=30" className={ui.botonSecundario}>
+                Ver los últimos 30 días
+              </Link>
+            ) : null}
+          </div>
         </div>
       ) : (
         <>
+          <section aria-labelledby="titulo-constancia" className="flex flex-col gap-3">
+            <h2 id="titulo-constancia" className="text-lg font-semibold text-balance">
+              <span className="tabular-nums">{resumen.diasConRegistro}</span> de{" "}
+              <span className="tabular-nums">{resumen.diasPeriodo}</span> días con algo cargado
+            </h2>
+            <TiraConstancia dias={dias} hoy={hoy} madrugada={madrugada} />
+          </section>
+
           <section aria-labelledby="titulo-numeros">
             <h2 id="titulo-numeros" className="sr-only">
-              Números del período
+              Promedios del período
             </h2>
-            <dl className="grid grid-cols-2 gap-3">
-              <Metrica
-                titulo="Días con registro"
-                valor={
-                  <>
-                    {resumen.diasConRegistro}{" "}
-                    <span className="text-base font-normal text-tinta-suave">
-                      de {resumen.diasPeriodo}
-                    </span>
-                  </>
-                }
-                detalle={
-                  resumen.diasConRegistro === resumen.diasPeriodo
-                    ? "¡Todos los días!"
-                    : `${Math.round((resumen.diasConRegistro * 100) / resumen.diasPeriodo)} % del período`
-                }
-              />
-              <Metrica
-                titulo="Racha actual"
-                valor={
-                  <>
-                    {racha.dias}
-                    {rachaAlTope ? "+" : ""}{" "}
-                    <span className="text-base font-normal">
-                      {racha.dias === 1 ? "día" : "días"}
-                      {rachaAlTope ? <span className="sr-only"> o más</span> : null}
-                    </span>
-                  </>
-                }
-                detalle={
-                  racha.dias === 0
-                    ? "Cargá algo hoy para arrancar una"
-                    : racha.incluyeHoy
-                      ? "Seguidos, contando hoy"
-                      : "Seguidos hasta ayer: cargá algo hoy para sumar"
-                }
-              />
-              <Metrica
+            <dl className="flex flex-col divide-y divide-borde rounded-2xl border border-borde bg-superficie px-4 py-1">
+              <Dato
                 titulo="Comidas por día"
-                valor={promedioComidas === null ? "—" : formatearDecimal(promedioComidas)}
-                detalle="Promedio de los días con registro, sin bebidas"
-              />
-              <Metrica
-                titulo="Bebidas"
-                valor={bebidas.registros}
+                valor={promedioComidas === null ? "Sin datos" : formatearDecimal(promedioComidas)}
                 detalle={
-                  bebidas.registros === 0
-                    ? "No registraste bebidas"
-                    : `En ${plural(bebidas.dias, "día", "días")}`
+                  promedioComidas === null
+                    ? "Solo cargaste bebidas"
+                    : `Promedio de ${plural(diasConComida.length, "día", "días")}, sin bebidas`
                 }
               />
+              <Dato
+                titulo="Bebidas"
+                valor={
+                  bebidas.registros === 0
+                    ? "Ninguna cargada"
+                    : `${bebidas.registros}, en ${plural(bebidas.dias, "día", "días")}`
+                }
+              />
+              {resumen.conFoto > 0 ? (
+                <Dato
+                  titulo="Con foto"
+                  valor={`${resumen.conFoto} de ${plural(resumen.totalRegistros, "registro", "registros")}`}
+                />
+              ) : null}
             </dl>
           </section>
 
-          <Seccion id="titulo-constancia" titulo="Constancia">
-            <TiraConstancia dias={dias} hoy={hoy} />
-          </Seccion>
-
-          <Seccion id="titulo-horarios" titulo="Horarios típicos" tarjeta>
+          <Seccion id="titulo-horarios" titulo="Horarios">
             <Horarios
               primera={resumen.primeraComida}
               ultima={resumen.ultimaComida}
@@ -163,110 +177,71 @@ export default async function PaginaResumen({ searchParams }: Props) {
             />
           </Seccion>
 
-          <Seccion id="titulo-tipos" titulo="Qué cargaste" tarjeta>
+          <Seccion id="titulo-tipos" titulo="Qué cargaste">
             <RepartoTipos porTipo={resumen.porTipo} />
           </Seccion>
 
-          <Seccion id="titulo-salteadas" titulo="Comidas principales sin registro" tarjeta>
-            {resumen.salteadas.diasEvaluados === 0 ? (
+          <Seccion id="titulo-principales" titulo="Comidas principales">
+            {diasEvaluados === 0 ? (
               <p className="text-sm text-tinta-suave text-pretty">
-                Todavía no hay días completos para mirar (hoy cuenta recién cuando termina).
+                Todavía no hay días terminados para mirar. Hoy entra cuando termina.
               </p>
             ) : (
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2">
                 <p className="text-sm text-tinta-suave text-pretty">
-                  <span
-                    className={`mr-1 text-2xl font-semibold tabular-nums ${
-                      salteadas > 0 ? "text-tinta" : "text-primario"
-                    }`}
-                  >
-                    {salteadas}
-                  </span>{" "}
-                  {salteadas === 1 ? "comida principal" : "comidas principales"} sin cargar en{" "}
-                  {plural(resumen.salteadas.diasEvaluados, "día", "días")} con registros.
+                  {diasEvaluados === 1
+                    ? "Si aparece cada una en el día terminado con algo cargado."
+                    : `En cuántos de los ${plural(diasEvaluados, "día terminado", "días terminados")} con algo cargado aparece cada una.`}
                 </p>
-                <ul className="grid grid-cols-2 gap-2 text-sm">
+                <dl className="flex flex-col divide-y divide-borde">
                   {COMIDAS_PRINCIPALES.map((t) => {
-                    const n = resumen.salteadas.porTipo[t];
+                    const con = diasEvaluados - resumen.salteadas.porTipo[t];
                     return (
-                      <li
-                        key={t}
-                        className={`flex min-h-11 items-center justify-between gap-2 rounded-xl px-3 ${
-                          n > 0 ? "bg-fondo" : "bg-primario-suave text-primario"
-                        }`}
-                      >
-                        <span>{etiquetaTipo(t)}</span>
-                        <span className="font-semibold tabular-nums">
-                          {n === 0 ? (
-                            <>
-                              <span aria-hidden="true">✓</span>
-                              <span className="sr-only">: ninguna vez</span>
-                            </>
-                          ) : (
-                            <>
-                              <span className="sr-only">: </span>
-                              {n}
-                              <span className="sr-only">{n === 1 ? " día" : " días"}</span>
-                            </>
-                          )}
-                        </span>
-                      </li>
+                      <div key={t} className="flex min-h-11 items-center justify-between gap-3">
+                        <dt>{etiquetaTipo(t)}</dt>
+                        <dd className="tabular-nums">
+                          {con} de {plural(diasEvaluados, "día", "días")}
+                        </dd>
+                      </div>
                     );
                   })}
-                </ul>
+                </dl>
               </div>
             )}
           </Seccion>
 
           <p className="text-xs text-tinta-suave text-pretty">
             Lo que se come antes de las {String(HORA_CORTE_DIA).padStart(2, "0")}:00 cuenta para el
-            día anterior. Los días sin nada cargado no cuentan como comidas salteadas.
+            día anterior. Los días sin nada cargado no entran en las comidas principales.
           </p>
         </>
       )}
-
-      <Link href="/semana" className={`${ui.botonSecundario} w-full`}>
-        Ver semana para imprimir
-      </Link>
     </div>
   );
 }
 
-function Seccion({
-  id,
-  titulo,
-  tarjeta = false,
-  children,
-}: {
-  id: string;
-  titulo: string;
-  tarjeta?: boolean;
-  children: ReactNode;
-}) {
+function Seccion({ id, titulo, children }: { id: string; titulo: string; children: ReactNode }) {
   return (
     <section aria-labelledby={id} className="flex flex-col gap-3">
       <h2 id={id} className="font-semibold">
         {titulo}
       </h2>
-      {tarjeta ? <div className={ui.tarjeta}>{children}</div> : children}
+      <div className={ui.tarjeta}>{children}</div>
     </section>
   );
 }
 
-function Metrica({
-  titulo,
-  valor,
-  detalle,
-}: {
-  titulo: string;
-  valor: ReactNode;
-  detalle: string;
-}) {
+// Fila clave-valor: el nombre a la izquierda, el dato y su aclaración a la derecha.
+function Dato({ titulo, valor, detalle }: { titulo: string; valor: string; detalle?: string }) {
   return (
-    <div className={`${ui.tarjeta} flex flex-col`}>
+    <div className="flex min-h-11 items-baseline justify-between gap-4 py-2.5">
       <dt className="text-sm text-tinta-suave">{titulo}</dt>
-      <dd className="mt-1 text-2xl font-semibold tracking-tight tabular-nums">{valor}</dd>
-      <dd className="mt-1 text-xs text-tinta-suave text-pretty">{detalle}</dd>
+      <dd className="text-right">
+        <span className="font-semibold tabular-nums">{valor}</span>
+        {detalle ? (
+          <span className="block text-xs text-tinta-suave text-pretty">{detalle}</span>
+        ) : null}
+      </dd>
     </div>
   );
 }

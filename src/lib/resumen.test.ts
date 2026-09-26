@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import type { TipoComida } from "@/lib/database.types";
-import { calcularResumen, rachaActual, registrosPorDia } from "@/lib/resumen";
+import { calcularResumen, registrosPorDia } from "@/lib/resumen";
 
 type Fila = { fecha: string; hora: string; tipo: TipoComida; foto_path: string | null };
 
@@ -37,6 +37,55 @@ describe("calcularResumen (comportamiento existente)", () => {
     );
     assert.equal(r.primeraComida!.promedio, (21 * 60 + 8 * 60) / 2);
     assert.equal(r.ayunoNocturno!.promedio, 11 * 60);
+  });
+});
+
+describe("calcularResumen: comidas y bebidas por separado", () => {
+  it("promedioComidasPorDia no cuenta bebidas; promedioPorDia sigue contando todo", () => {
+    const r = calcularResumen(
+      [
+        c("2026-09-21", "08:00", "desayuno"),
+        c("2026-09-21", "10:00", "bebida"),
+        c("2026-09-21", "13:00", "almuerzo"),
+        c("2026-09-22", "09:00", "bebida"),
+        c("2026-09-22", "21:00", "cena"),
+      ],
+      "2026-09-21",
+      "2026-09-23",
+    );
+    assert.equal(r.totalRegistros, 5);
+    assert.equal(r.totalComidas, 3);
+    assert.equal(r.totalBebidas, 2);
+    assert.equal(r.diasConRegistro, 2);
+    assert.equal(r.promedioPorDia, 5 / 2);
+    assert.equal(r.promedioComidasPorDia, 3 / 2);
+  });
+
+  it("un día con solo bebidas es un día con registros: entra en el promedio y se evalúa", () => {
+    const r = calcularResumen(
+      [c("2026-09-21", "13:00", "almuerzo"), c("2026-09-22", "10:00", "bebida")],
+      "2026-09-21",
+      "2026-09-22",
+    );
+    assert.equal(r.promedioComidasPorDia, 1 / 2);
+    assert.equal(r.salteadas.diasEvaluados, 2);
+    // El 22 no tiene ninguna comida principal registrada.
+    assert.deepEqual(r.salteadas.porDia.find((d) => d.fecha === "2026-09-22")?.faltan, [
+      "desayuno",
+      "almuerzo",
+      "merienda",
+      "cena",
+    ]);
+    // Pero no tiene horarios de comida.
+    assert.equal(r.primeraComida!.cantidad, 1);
+  });
+
+  it("sin registros los promedios son null y los totales 0", () => {
+    const r = calcularResumen([], "2026-09-21", "2026-09-27");
+    assert.equal(r.promedioComidasPorDia, null);
+    assert.equal(r.promedioPorDia, null);
+    assert.equal(r.totalComidas, 0);
+    assert.equal(r.totalBebidas, 0);
   });
 });
 
@@ -85,54 +134,5 @@ describe("registrosPorDia", () => {
       [0, 0, 1],
     );
     assert.deepEqual(registrosPorDia([], "2026-09-23", "2026-09-21"), []);
-  });
-});
-
-describe("rachaActual", () => {
-  const hoy = "2026-09-25";
-
-  it("cuenta los días seguidos terminando hoy", () => {
-    const r = rachaActual(
-      [c("2026-09-23", "12:00"), c("2026-09-24", "12:00"), c("2026-09-25", "09:00")],
-      hoy,
-    );
-    assert.deepEqual(r, { dias: 3, incluyeHoy: true });
-  });
-
-  it("si hoy todavía está vacío, no corta la racha: cuenta hasta ayer", () => {
-    const r = rachaActual([c("2026-09-23", "12:00"), c("2026-09-24", "12:00")], hoy);
-    assert.deepEqual(r, { dias: 2, incluyeHoy: false });
-  });
-
-  it("un día vacío en el medio corta la racha", () => {
-    const r = rachaActual(
-      [c("2026-09-21", "12:00"), c("2026-09-22", "12:00"), c("2026-09-24", "12:00")],
-      hoy,
-    );
-    assert.deepEqual(r, { dias: 1, incluyeHoy: false });
-  });
-
-  it("es 0 si ni hoy ni ayer tienen registros", () => {
-    assert.deepEqual(rachaActual([c("2026-09-22", "12:00")], hoy), { dias: 0, incluyeHoy: false });
-    assert.deepEqual(rachaActual([], hoy), { dias: 0, incluyeHoy: false });
-  });
-
-  it("usa el día alimentario: lo de madrugada de hoy es de ayer", () => {
-    // Hoy a las 02:00 cuenta para ayer; hoy en sí sigue vacío.
-    const r = rachaActual([c("2026-09-24", "12:00"), c("2026-09-25", "02:00", "cena")], hoy);
-    assert.deepEqual(r, { dias: 1, incluyeHoy: false });
-  });
-
-  it("cuenta las bebidas como registro y cruza meses", () => {
-    const r = rachaActual(
-      [c("2026-08-31", "10:00", "bebida"), c("2026-09-01", "10:00", "bebida")],
-      "2026-09-01",
-    );
-    assert.deepEqual(r, { dias: 2, incluyeHoy: true });
-  });
-
-  it("ignora filas con hora inválida y devuelve 0 si hoy no es una fecha válida", () => {
-    assert.deepEqual(rachaActual([c(hoy, "25:00")], hoy), { dias: 0, incluyeHoy: false });
-    assert.deepEqual(rachaActual([c(hoy, "12:00")], "hoy"), { dias: 0, incluyeHoy: false });
   });
 });

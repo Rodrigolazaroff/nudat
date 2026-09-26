@@ -4,7 +4,8 @@ import { useMemo, useRef, useState } from "react";
 import type { TipoComida } from "@/lib/database.types";
 import { TIPOS_COMIDA, etiquetaTipo } from "@/lib/comidas";
 import { COMIDAS_PRINCIPALES, esComidaPrincipal } from "@/lib/resumen";
-import { fechaCorta, fechaLarga, plural } from "./formato";
+import { conteoDeDia, fechaCorta, fechaLarga, madrugadaDel } from "./formato";
+import { Miniatura } from "./miniatura";
 import { ui } from "./ui";
 
 export type ComidaGrilla = {
@@ -52,8 +53,8 @@ export function GrillaSemana({
 
   return (
     <>
-      {/* Desktop e impresión: tabla días × tipos de comida. */}
-      <div className="hidden overflow-x-auto rounded-2xl border border-borde bg-superficie lg:block print:block print:overflow-visible">
+      {/* Desktop: tabla días × tipos de comida. Al imprimir se usa HojaDias (lista por día). */}
+      <div className="hidden overflow-x-auto rounded-2xl border border-borde bg-superficie lg:block print:hidden">
         <table className="w-full table-fixed border-collapse text-sm">
           <caption className="sr-only">
             Comidas registradas por día y tipo. Las celdas vacías son comidas sin registro.
@@ -80,12 +81,10 @@ export function GrillaSemana({
             {dias.map((dia) => {
               const enCurso = dia.fecha === diaEnCurso;
               return (
-                <tr key={dia.fecha} className="border-b border-borde align-top last:border-b-0 print:break-inside-avoid">
+                <tr key={dia.fecha} className="border-b border-borde align-top last:border-b-0">
                   <th scope="row" className="px-3 py-3 text-left align-top font-normal">
                     <span className="block font-medium capitalize">{fechaCorta(dia.fecha)}</span>
-                    <span className="block text-xs text-tinta-suave tabular-nums">
-                      {plural(dia.comidas.length, "comida", "comidas")}
-                    </span>
+                    <span className="block text-xs text-tinta-suave tabular-nums">{conteoDeDia(dia.comidas)}</span>
                     {enCurso ? (
                       <span className="mt-1 inline-block rounded-full bg-primario-suave px-2 py-0.5 text-xs font-medium text-primario">
                         Hoy
@@ -95,7 +94,7 @@ export function GrillaSemana({
                   {dia.comidas.length === 0 ? (
                     <td colSpan={TIPOS_COMIDA.length} className="p-2">
                       <div className="flex min-h-20 items-center justify-center rounded-xl border border-dashed border-borde text-tinta-suave">
-                        {enCurso ? "Todavía no registró comidas hoy." : "No registró comidas este día."}
+                        {enCurso ? "Todavía no cargaste nada hoy." : "No cargaste nada este día."}
                       </div>
                     </td>
                   ) : (
@@ -141,13 +140,11 @@ export function GrillaSemana({
                   {fechaLarga(dia.fecha)}
                   {enCurso ? <span className="font-normal text-tinta-suave"> · hoy</span> : null}
                 </h3>
-                <span className="shrink-0 text-sm text-tinta-suave tabular-nums">
-                  {plural(dia.comidas.length, "comida", "comidas")}
-                </span>
+                <span className="shrink-0 text-sm text-tinta-suave tabular-nums">{conteoDeDia(dia.comidas)}</span>
               </header>
               {dia.comidas.length === 0 ? (
                 <p className="px-4 py-4 text-sm text-tinta-suave">
-                  {enCurso ? "Todavía no registró comidas hoy." : "No registró comidas este día."}
+                  {enCurso ? "Todavía no cargaste nada hoy." : "No cargaste nada este día."}
                 </p>
               ) : (
                 <ul className="divide-y divide-borde">
@@ -270,21 +267,7 @@ function TarjetaComida({ comida: c, onAbrir }: { comida: ComidaGrilla; onAbrir: 
       className={`flex w-full flex-col gap-1.5 rounded-xl border border-borde bg-superficie p-1.5 text-left transition-colors hover:border-primario ${ui.foco}`}
     >
       <span className="sr-only">{etiquetaTipo(c.tipo)}, </span>
-      {c.fotoUrl ? (
-        // URL firmada de Supabase: <img> directo, sin pasar por el optimizador de Next.
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={c.fotoUrl}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          className="aspect-[4/3] w-full rounded-lg bg-fondo object-cover"
-        />
-      ) : c.fotoError ? (
-        <span className="grid aspect-[4/3] w-full place-items-center rounded-lg bg-fondo text-xs text-tinta-suave">
-          Foto no disponible
-        </span>
-      ) : null}
+      <Miniatura url={c.fotoUrl} error={c.fotoError} className="aspect-[4/3] w-full rounded-lg" />
       <span className="px-1 text-xs font-medium tabular-nums">
         <Hora comida={c} />
       </span>
@@ -302,24 +285,12 @@ function FilaComida({ comida: c, onAbrir }: { comida: ComidaGrilla; onAbrir: (id
       onClick={() => onAbrir(c.id)}
       className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-fondo focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primario"
     >
-      {c.fotoUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={c.fotoUrl}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          className="size-16 shrink-0 rounded-lg bg-fondo object-cover"
-        />
-      ) : (
-        <span className="grid size-16 shrink-0 place-items-center rounded-lg bg-fondo px-1 text-center text-[11px] leading-tight text-tinta-suave">
-          {c.fotoError ? "Foto no disponible" : "Sin foto"}
-        </span>
-      )}
+      {/* Sin foto no se reserva el recuadro: la fila arranca con el texto. */}
+      <Miniatura url={c.fotoUrl} error={c.fotoError} className="size-16 rounded-lg" />
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline justify-between gap-2">
           <span className="font-medium">{etiquetaTipo(c.tipo)}</span>
-          <span className="shrink-0 text-sm text-tinta-suave tabular-nums">
+          <span className="shrink-0 text-right text-sm text-tinta-suave tabular-nums">
             <Hora comida={c} />
           </span>
         </span>
@@ -331,15 +302,13 @@ function FilaComida({ comida: c, onAbrir }: { comida: ComidaGrilla; onAbrir: (id
   );
 }
 
+/** Hora; si fue pasada la medianoche, con la fecha real abajo ("madrugada del mar 23/9"). */
 function Hora({ comida }: { comida: ComidaGrilla }) {
   if (!comida.madrugada) return comida.hora;
   return (
     <>
       {comida.hora}
-      <span title={`Madrugada del ${fechaLarga(comida.fecha)}`} className="text-tinta-suave">
-        {" "}
-        (+1)
-      </span>
+      <span className="block text-xs font-normal text-tinta-suave">{madrugadaDel(comida.fecha)}</span>
     </>
   );
 }
