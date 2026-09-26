@@ -49,3 +49,15 @@ body {
     color: var(--tinta);
   }
 }
+
+/* Onda del dictado por voz (boton-dictar.tsx). */
+@keyframes onda {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+.onda-barra {
+  animation: onda 900ms ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .onda-barra { animation: none; transform: scaleY(0.6); }
+}

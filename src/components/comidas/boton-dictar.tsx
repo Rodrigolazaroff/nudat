@@ -103,18 +103,29 @@ export function BotonDictar({
       type="button"
       onClick={() => (escuchando ? reconocedor.current?.stop() : empezar())}
       aria-pressed={escuchando}
-      className={`inline-flex h-11 items-center gap-1.5 rounded-full px-3 text-sm font-medium transition-colors duration-150 motion-reduce:transition-none ${
+      aria-label={escuchando ? "Dejar de dictar" : "Dictar descripción"}
+      className={`inline-flex h-11 items-center justify-center rounded-full transition-[background-color,width,color] duration-200 ease-out motion-reduce:transition-none ${
         escuchando
-          ? "bg-primario text-sobre-primario"
-          : "text-primario hover:bg-primario-suave active:bg-primario-suave"
+          ? "w-20 bg-primario text-sobre-primario"
+          : "w-11 text-primario hover:bg-primario-suave active:bg-primario-suave"
       } ${className}`}
     >
-      {escuchando ? (
-        <span aria-hidden="true" className="size-2 rounded-full bg-sobre-primario motion-safe:animate-pulse" />
-      ) : (
-        <IconoMicrofono className="size-5" />
-      )}
-      {escuchando ? "Terminar" : "Dictar"}
+      {escuchando ? <Onda /> : <IconoMicrofono className="size-6" />}
     </button>
+  );
+}
+
+// Barras que suben y bajan mientras escucha (decorativo).
+function Onda() {
+  return (
+    <span aria-hidden="true" className="flex h-5 items-center gap-[3px]">
+      {[0, 150, 300, 450, 600].map((retraso) => (
+        <span
+          key={retraso}
+          className="onda-barra h-full w-[3px] rounded-full bg-sobre-primario"
+          style={{ animationDelay: `${retraso}ms` }}
+        />
+      ))}
+    </span>
   );
 }
