@@ -156,7 +156,8 @@ export function InstalarApp() {
   return (
     <section
       aria-labelledby="instalar-app-titulo"
-      className="relative mt-4 rounded-2xl border border-borde bg-superficie p-4"
+      // Aparece recién después de hidratar: entra con un fundido corto en vez de "saltar".
+      className="relative mt-4 rounded-2xl border border-borde bg-superficie p-4 transition-opacity duration-200 ease-out starting:opacity-0 motion-reduce:transition-none"
     >
       <div className="flex items-start gap-3 pr-10">
         <Isotipo className="size-12 shrink-0" />
@@ -176,7 +177,7 @@ export function InstalarApp() {
         <button
           type="button"
           onClick={instalar}
-          className={`mt-3 inline-flex h-12 w-full items-center justify-center rounded-xl bg-primario px-5 font-medium text-sobre-primario transition-colors hover:bg-primario-hover ${foco}`}
+          className={`mt-3 inline-flex h-12 w-full items-center justify-center rounded-xl bg-primario px-5 font-medium text-sobre-primario transition-colors hover:bg-primario-hover active:bg-primario-hover ${foco}`}
         >
           Instalar app
         </button>
@@ -187,7 +188,7 @@ export function InstalarApp() {
         onClick={descartar}
         aria-label="No mostrar más"
         title="No mostrar más"
-        className={`absolute top-2 right-2 flex size-11 items-center justify-center rounded-full text-tinta-suave transition-colors hover:bg-fondo hover:text-tinta ${foco}`}
+        className={`absolute top-2 right-2 flex size-11 items-center justify-center rounded-full text-tinta-suave transition-colors hover:bg-fondo hover:text-tinta active:bg-borde/60 ${foco}`}
       >
         <IconoCerrar className="size-5" />
       </button>

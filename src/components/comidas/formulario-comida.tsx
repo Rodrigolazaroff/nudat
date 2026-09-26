@@ -94,10 +94,18 @@ export type FormularioComidaProps = {
 
 class ErrorVisible extends Error {}
 
-const MENSAJE_GUARDAR = "No pudimos guardar la comida. Revisá la conexión y probá de nuevo.";
+const MENSAJE_GUARDAR = "No pudimos guardar el registro. Revisá la conexión y probá de nuevo.";
 
 const claseInput =
-  "h-12 w-full rounded-xl border border-borde bg-superficie px-4 text-base outline-none focus:border-primario focus:ring-2 focus:ring-primario/20";
+  "h-12 w-full rounded-xl border border-borde bg-superficie px-4 text-base outline-none placeholder:text-tinta-suave focus:border-primario focus:ring-2 focus:ring-primario/20";
+
+// Foco de teclado visible y consistente en botones (el mismo anillo en toda la app).
+const foco =
+  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primario";
+
+// Respuesta al toque en los botones grandes: se hunden apenas. Sin movimiento si se pide.
+const presion =
+  "transition-[background-color,border-color,scale] duration-150 ease-out active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100";
 
 export function FormularioComida({ usuarioId, hoy, valores, comida }: FormularioComidaProps) {
   const router = useRouter();
@@ -122,6 +130,8 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
   const inputCamara = useRef<HTMLInputElement>(null);
   const inputGaleria = useRef<HTMLInputElement>(null);
   const botonCancelarBorrado = useRef<HTMLButtonElement>(null);
+  const botonEliminar = useRef<HTMLButtonElement>(null);
+  const volverFocoAEliminar = useRef(false); // al cancelar, el foco vuelve a "Eliminar registro"
   const ultimaFotoPedida = useRef(0); // si elige otra foto mientras procesamos la anterior
   const enviando = useRef(false); // evita doble envío por doble toque
 
@@ -135,8 +145,18 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
   }, [urlVistaPrevia]);
 
   useEffect(() => {
-    if (confirmandoBorrado) botonCancelarBorrado.current?.focus();
+    if (confirmandoBorrado) {
+      botonCancelarBorrado.current?.focus();
+    } else if (volverFocoAEliminar.current) {
+      volverFocoAEliminar.current = false;
+      botonEliminar.current?.focus();
+    }
   }, [confirmandoBorrado]);
+
+  function cancelarBorrado() {
+    volverFocoAEliminar.current = true;
+    setConfirmandoBorrado(false);
+  }
 
   async function alElegirFoto(e: ChangeEvent<HTMLInputElement>) {
     const archivo = e.target.files?.[0];
@@ -219,7 +239,7 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
           .select("id");
         if (errorDb) throw errorDeBase(errorDb);
         if (data.length === 0) {
-          throw new ErrorVisible("No encontramos esta comida. Puede que ya la hayas eliminado.");
+          throw new ErrorVisible("No encontramos este registro. Puede que ya lo hayas eliminado.");
         }
         // Ya no la usa nadie: se reemplazó o se quitó.
         if (comida.fotoPath && comida.fotoPath !== fotoPath) {
@@ -256,7 +276,7 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
       .select("id");
     if (errorDb) {
       console.error(errorDb);
-      setError("No pudimos eliminar la comida. Revisá la conexión y probá de nuevo.");
+      setError("No pudimos eliminar el registro. Revisá la conexión y probá de nuevo.");
       setFase("editando");
       enviando.current = false;
       return;
@@ -268,18 +288,24 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
     startTransition(() => router.replace(`/?fecha=${valores.fecha}`));
   }
 
+  const guardandoAhora =
+    fase === "subiendo" || fase === "guardando" || (fase === "listo" && !confirmandoBorrado);
   const textoBoton =
     fase === "subiendo"
       ? "Subiendo foto…"
-      : fase === "guardando" || (fase === "listo" && !confirmandoBorrado)
+      : guardandoAhora
         ? "Guardando…"
-        : comida
-          ? "Guardar cambios"
-          : "Guardar comida";
+        : procesandoFoto
+          ? "Esperando la foto…"
+          : comida
+            ? "Guardar cambios"
+            : cuando.tipo === "bebida"
+              ? "Guardar bebida"
+              : "Guardar comida";
 
   return (
     <>
-      <form onSubmit={guardar} noValidate>
+      <form onSubmit={guardar} noValidate aria-busy={ocupado}>
         <fieldset disabled={ocupado} className="flex min-w-0 flex-col gap-6">
           {/* ── Foto ── */}
           <section aria-label="Foto del plato">
@@ -306,7 +332,10 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
                 role="status"
                 className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 rounded-2xl border border-borde bg-superficie text-sm text-tinta-suave"
               >
-                <span className="size-6 animate-spin rounded-full border-2 border-primario border-t-transparent" />
+                <span
+                  aria-hidden="true"
+                  className="size-6 animate-spin rounded-full border-2 border-primario border-t-transparent"
+                />
                 Preparando la foto…
               </div>
             ) : foto ? (
@@ -328,7 +357,7 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
                   type="button"
                   onClick={quitarFoto}
                   aria-label="Quitar foto"
-                  className="absolute top-2 right-2 flex size-12 items-center justify-center rounded-full bg-tinta/70 text-sobre-primario backdrop-blur hover:bg-tinta/80"
+                  className={`absolute top-2 right-2 flex size-12 items-center justify-center rounded-full bg-tinta/70 text-sobre-primario backdrop-blur hover:bg-tinta/85 active:bg-tinta/90 ${foco}`}
                 >
                   <IconoCerrar className="size-5" />
                 </button>
@@ -338,7 +367,7 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
                 <button
                   type="button"
                   onClick={() => inputCamara.current?.click()}
-                  className="flex h-32 flex-col items-center justify-center gap-2 rounded-2xl bg-primario px-3 font-medium text-sobre-primario hover:bg-primario-hover"
+                  className={`flex h-32 flex-col items-center justify-center gap-2 rounded-2xl bg-primario px-3 font-medium text-sobre-primario hover:bg-primario-hover active:bg-primario-hover ${presion} ${foco}`}
                 >
                   <IconoCamara className="size-8" />
                   Sacar foto
@@ -346,7 +375,7 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
                 <button
                   type="button"
                   onClick={() => inputGaleria.current?.click()}
-                  className="flex h-32 flex-col items-center justify-center gap-2 rounded-2xl border border-borde bg-superficie px-3 text-center font-medium text-tinta hover:border-primario/40"
+                  className={`flex h-32 flex-col items-center justify-center gap-2 rounded-2xl border border-borde bg-superficie px-3 text-center font-medium text-tinta hover:border-primario/40 active:border-primario/60 ${presion} ${foco}`}
                 >
                   <IconoGaleria className="size-8 text-primario" />
                   Elegir de la galería
@@ -357,7 +386,7 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
             {cuando.antesDeLaFoto && (
               <div
                 role="status"
-                className="mt-3 flex items-center gap-3 rounded-xl bg-primario-suave py-1 pr-1 pl-4 text-sm text-primario"
+                className="mt-3 flex items-center gap-3 rounded-xl bg-primario-suave py-1 pr-1 pl-4 text-sm text-primario transition-opacity duration-200 ease-out starting:opacity-0 motion-reduce:transition-none"
               >
                 <IconoReloj className="size-5 shrink-0" />
                 <p className="flex-1 py-2">
@@ -366,7 +395,7 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
                 <button
                   type="button"
                   onClick={() => despachar({ accion: "deshacerFechaDeFoto" })}
-                  className="h-12 shrink-0 rounded-lg px-3 font-medium underline underline-offset-2"
+                  className={`h-12 shrink-0 rounded-lg px-3 font-medium underline underline-offset-2 hover:bg-primario/10 ${foco}`}
                 >
                   Deshacer
                 </button>
@@ -376,7 +405,7 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
 
           {/* ── Tipo ── */}
           <fieldset className="min-w-0">
-            <legend className="mb-3 text-sm font-medium">¿Qué comida es?</legend>
+            <legend className="mb-3 text-sm font-medium">Tipo</legend>
             <div className="flex flex-wrap gap-x-2 gap-y-3">
               {TIPOS_COMIDA.map(({ valor, etiqueta }) => {
                 const elegido = cuando.tipo === valor;
@@ -384,8 +413,11 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
                   <label
                     key={valor}
                     // El ::after agranda el área táctil a 48 px sin cambiar el chip.
-                    className={`relative cursor-pointer rounded-full border px-4 py-2 text-sm select-none after:absolute after:inset-x-0 after:-inset-y-1.5 after:content-[''] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primario/30 ${
-                      elegido ? "border-primario bg-primario-suave text-primario" : "border-borde"
+                    // Elegido: borde doble (ring interno) además del color, sin cambiar el ancho.
+                    className={`relative cursor-pointer rounded-full border px-4 py-2 text-sm transition-colors select-none after:absolute after:inset-x-0 after:-inset-y-1.5 after:content-[''] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-primario motion-reduce:transition-none ${
+                      elegido
+                        ? "border-primario bg-primario-suave text-primario ring-1 ring-primario ring-inset"
+                        : "border-borde bg-superficie text-tinta hover:border-primario/40 active:bg-primario-suave"
                     }`}
                   >
                     <input
@@ -412,7 +444,10 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
                 required
                 max={hoy}
                 value={cuando.fecha}
-                onChange={(e) => despachar({ accion: "fecha", valor: e.target.value })}
+                onChange={(e) => {
+                  setError(null);
+                  despachar({ accion: "fecha", valor: e.target.value });
+                }}
                 className={`${claseInput} min-w-0 appearance-none [&::-webkit-date-and-time-value]:text-left`}
               />
             </label>
@@ -422,7 +457,10 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
                 type="time"
                 required
                 value={cuando.hora}
-                onChange={(e) => despachar({ accion: "hora", valor: e.target.value })}
+                onChange={(e) => {
+                  setError(null);
+                  despachar({ accion: "hora", valor: e.target.value });
+                }}
                 className={`${claseInput} min-w-0 appearance-none [&::-webkit-date-and-time-value]:text-left`}
               />
             </label>
@@ -438,14 +476,17 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
               rows={3}
               maxLength={2000}
               value={descripcion}
-              onChange={(e) => setDescripcion(e.target.value)}
+              onChange={(e) => {
+                setError(null);
+                setDescripcion(e.target.value);
+              }}
               autoCapitalize="sentences"
               placeholder={
                 cuando.tipo === "bebida"
                   ? "¿Qué tomaste? Ej: 1 vaso de agua, café con leche, 2 cervezas"
                   : "¿Qué comiste? Ej: 2 tostadas con queso y café con leche"
               }
-              className="block min-h-24 w-full resize-y rounded-xl border border-borde bg-superficie px-4 py-3 text-base outline-none focus:border-primario focus:ring-2 focus:ring-primario/20"
+              className="block min-h-24 w-full resize-y rounded-xl border border-borde bg-superficie px-4 py-3 text-base outline-none placeholder:text-tinta-suave focus:border-primario focus:ring-2 focus:ring-primario/20"
             />
           </label>
         </fieldset>
@@ -457,11 +498,20 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
               {error}
             </p>
           )}
+          {/* Mientras guarda no se "apaga": sigue sólido y con spinner, para que se lea como progreso. */}
           <button
             type="submit"
             disabled={ocupado || procesandoFoto}
-            className="h-12 w-full rounded-xl bg-primario px-5 font-medium text-sobre-primario hover:bg-primario-hover disabled:opacity-50"
+            className={`flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primario px-5 font-medium text-sobre-primario hover:bg-primario-hover disabled:cursor-default ${
+              guardandoAhora ? "" : "active:bg-primario-hover disabled:opacity-50"
+            } ${presion} ${foco}`}
           >
+            {guardandoAhora && (
+              <span
+                aria-hidden="true"
+                className="size-4 animate-spin rounded-full border-2 border-sobre-primario border-t-transparent"
+              />
+            )}
             {textoBoton}
           </button>
         </div>
@@ -470,18 +520,27 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
       {comida && (
         <div className="mt-2 pb-[calc(1.5rem_+_env(safe-area-inset-bottom))]">
           {confirmandoBorrado ? (
-            <div className="rounded-2xl border border-borde bg-peligro-suave p-4">
-              <p className="font-medium text-peligro">¿Eliminar este registro?</p>
-              <p className="mt-1 text-sm text-tinta-suave">
+            <div
+              role="group"
+              aria-labelledby="confirmar-borrado"
+              onKeyDown={(e) => {
+                if (e.key === "Escape" && !ocupado) cancelarBorrado();
+              }}
+              className="rounded-2xl border border-peligro/25 bg-peligro-suave p-4"
+            >
+              <p id="confirmar-borrado" className="font-medium text-peligro">
+                ¿Eliminar este registro?
+              </p>
+              <p className="mt-1 text-sm text-tinta">
                 {comida.fotoPath ? "Se borra también la foto. " : ""}No se puede deshacer.
               </p>
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <button
                   ref={botonCancelarBorrado}
                   type="button"
-                  onClick={() => setConfirmandoBorrado(false)}
+                  onClick={cancelarBorrado}
                   disabled={ocupado}
-                  className="h-12 rounded-xl border border-borde bg-superficie px-4 font-medium disabled:opacity-50"
+                  className={`h-12 rounded-xl border border-borde bg-superficie px-4 font-medium hover:border-tinta-suave/40 disabled:opacity-50 ${presion} ${foco}`}
                 >
                   Cancelar
                 </button>
@@ -489,20 +548,21 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
                   type="button"
                   onClick={eliminar}
                   disabled={ocupado}
-                  className="h-12 rounded-xl bg-peligro px-4 font-medium text-sobre-primario disabled:opacity-50"
+                  className={`h-12 rounded-xl bg-peligro px-4 font-medium text-sobre-primario outline-none hover:bg-peligro/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-peligro disabled:opacity-70 ${presion}`}
                 >
-                  {fase === "eliminando" || fase === "listo" ? "Eliminando…" : "Sí, eliminar"}
+                  {fase === "eliminando" || fase === "listo" ? "Eliminando…" : "Eliminar registro"}
                 </button>
               </div>
             </div>
           ) : (
             <button
+              ref={botonEliminar}
               type="button"
               onClick={() => setConfirmandoBorrado(true)}
               disabled={ocupado}
-              className="h-12 w-full rounded-xl px-4 font-medium text-peligro hover:bg-peligro-suave disabled:opacity-50"
+              className="h-12 w-full rounded-xl px-4 font-medium text-peligro outline-none transition-colors hover:bg-peligro-suave focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-peligro active:bg-peligro-suave disabled:opacity-50 motion-reduce:transition-none"
             >
-              Eliminar
+              Eliminar registro
             </button>
           )}
         </div>

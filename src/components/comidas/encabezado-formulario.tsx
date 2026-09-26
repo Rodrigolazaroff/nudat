@@ -7,11 +7,11 @@ export function EncabezadoFormulario({ titulo, volverA }: { titulo: string; volv
       <Link
         href={volverA}
         aria-label="Volver sin guardar"
-        className="-ml-3 flex size-12 shrink-0 items-center justify-center rounded-full text-tinta hover:bg-superficie"
+        className="-ml-3 flex size-12 shrink-0 items-center justify-center rounded-full text-tinta outline-none transition-colors hover:bg-superficie focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primario active:bg-borde/60 motion-reduce:transition-none"
       >
         <IconoVolver className="size-6" />
       </Link>
-      <h1 className="text-xl font-semibold">{titulo}</h1>
+      <h1 className="min-w-0 truncate text-xl font-semibold">{titulo}</h1>
     </div>
   );
 }

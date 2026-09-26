@@ -16,7 +16,7 @@ export function TarjetaComida({ comida, fotoUrl }: Props) {
   return (
     <Link
       href={`/comida/${comida.id}`}
-      className="flex items-center gap-3 rounded-2xl border border-borde bg-superficie p-4 outline-none transition-colors hover:border-primario/40 focus-visible:border-primario focus-visible:ring-2 focus-visible:ring-primario/20 active:bg-fondo"
+      className="flex items-center gap-3 rounded-2xl border border-borde bg-superficie p-4 outline-none transition-colors hover:border-primario/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primario active:bg-fondo motion-reduce:transition-none"
     >
       {fotoUrl ? (
         // URL firmada de Supabase: <img> simple (next/image necesitaría remotePatterns).
@@ -42,7 +42,7 @@ export function TarjetaComida({ comida, fotoUrl }: Props) {
         {descripcion ? (
           <p className="mt-0.5 line-clamp-2 text-sm text-tinta-suave">{descripcion}</p>
         ) : (
-          <p className="mt-0.5 text-sm text-tinta-suave/80">Sin descripción</p>
+          <p className="mt-0.5 text-sm text-tinta-suave italic">Sin descripción</p>
         )}
       </div>
 

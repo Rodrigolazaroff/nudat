@@ -16,8 +16,22 @@ import {
 
 export const metadata: Metadata = { title: "Hoy" };
 
-const botonDia =
-  "flex size-12 shrink-0 items-center justify-center rounded-full border border-borde bg-superficie text-tinta";
+// Foco de teclado visible y consistente (el mismo anillo que la tarjeta de instalar).
+const foco =
+  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primario";
+
+const botonDia = `flex size-12 shrink-0 items-center justify-center rounded-full border border-borde bg-superficie text-tinta transition-colors ${foco}`;
+
+/** "1 comida" · "3 comidas y 2 bebidas" · "1 bebida". */
+function conteo(tipos: string[]): string {
+  const bebidas = tipos.filter((t) => t === "bebida").length;
+  const comidas = tipos.length - bebidas;
+  const partes = [
+    comidas > 0 ? `${comidas} ${comidas === 1 ? "comida" : "comidas"}` : null,
+    bebidas > 0 ? `${bebidas} ${bebidas === 1 ? "bebida" : "bebidas"}` : null,
+  ].filter(Boolean);
+  return partes.join(" y ");
+}
 
 export default async function PaginaHoy({
   searchParams,
@@ -53,25 +67,25 @@ export default async function PaginaHoy({
         <Link
           href={`/?fecha=${anterior}`}
           aria-label={`Ver ${nombreDia(anterior, hoy).toLowerCase()}`}
-          className={`${botonDia} hover:border-primario/40`}
+          className={`${botonDia} hover:border-primario/40 active:bg-primario-suave`}
         >
           <IconoIzquierda className="size-5" />
         </Link>
 
         <div className="min-w-0 text-center">
-          <h1 className="text-xl font-semibold">{nombreDia(fecha, hoy)}</h1>
+          <h1 className="text-xl font-semibold text-balance">{nombreDia(fecha, hoy)}</h1>
           <p className="truncate text-sm text-tinta-suave">{fechaLarga(fecha, hoy)}</p>
         </div>
 
         {esHoy ? (
-          <span aria-hidden="true" className={`${botonDia} opacity-40`}>
+          <span aria-hidden="true" className={`${botonDia} text-tinta-suave opacity-40`}>
             <IconoDerecha className="size-5" />
           </span>
         ) : (
           <Link
             href={`/?fecha=${siguiente}`}
             aria-label={`Ver ${nombreDia(siguiente, hoy).toLowerCase()}`}
-            className={`${botonDia} hover:border-primario/40`}
+            className={`${botonDia} hover:border-primario/40 active:bg-primario-suave`}
           >
             <IconoDerecha className="size-5" />
           </Link>
@@ -82,7 +96,7 @@ export default async function PaginaHoy({
         <div className="mt-2 text-center">
           <Link
             href="/"
-            className="inline-flex h-12 items-center px-3 text-sm font-medium text-primario"
+            className={`inline-flex h-12 items-center rounded-xl px-3 text-sm font-medium text-primario underline-offset-4 hover:underline ${foco}`}
           >
             Volver a hoy
           </Link>
@@ -94,7 +108,7 @@ export default async function PaginaHoy({
       {comidas.length > 0 ? (
         <>
           <p className="mt-5 mb-2 text-sm text-tinta-suave">
-            {comidas.length === 1 ? "1 registro" : `${comidas.length} registros`}
+            {conteo(comidas.map((c) => c.tipo))}
           </p>
           <ul className="flex flex-col gap-3">
             {comidas.map((comida) => (
@@ -112,13 +126,13 @@ export default async function PaginaHoy({
           <div className="flex size-16 items-center justify-center rounded-full bg-primario-suave text-primario">
             <IconoPlato className="size-8" />
           </div>
-          <h2 className="mt-4 font-medium">
+          <h2 className="mt-4 font-medium text-balance">
             {esHoy ? "Todavía no cargaste nada hoy" : "No hay nada cargado este día"}
           </h2>
-          <p className="mt-1 max-w-xs text-sm text-tinta-suave">
+          <p className="mt-1 max-w-xs text-sm text-pretty text-tinta-suave">
             {esHoy
-              ? "Sacale una foto al plato antes de empezar y anotá también lo que tomás: cargarlo te lleva unos segundos."
-              : "Si te olvidaste de alguna, podés agregarla ahora."}
+              ? "Sacale una foto al plato antes de empezar y anotá también lo que tomás. Cargarlo te lleva unos segundos."
+              : "Si te olvidaste de algo, podés agregarlo ahora con la fecha de este día."}
           </p>
         </div>
       )}
@@ -128,7 +142,7 @@ export default async function PaginaHoy({
         <div className="mx-auto max-w-lg px-4">
           <Link
             href={`/nueva?fecha=${fecha}`}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primario px-5 font-medium text-sobre-primario shadow-sm hover:bg-primario-hover"
+            className={`flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primario px-5 font-medium text-sobre-primario shadow-sm transition-[background-color,scale] duration-150 ease-out hover:bg-primario-hover active:scale-[0.98] active:bg-primario-hover motion-reduce:transition-none motion-reduce:active:scale-100 ${foco}`}
           >
             <IconoMas className="size-5" />
             Agregar comida o bebida
