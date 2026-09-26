@@ -16,6 +16,7 @@ import type { TipoComida } from "@/lib/database.types";
 import { BUCKET_FOTOS, TIPOS_COMIDA, sugerirTipo } from "@/lib/comidas";
 import { comprimirImagen, leerFechaFoto, rutaFoto, type FechaHora } from "@/lib/fotos";
 import { diaYMes, esFechaValida, nombreDia, sumarDias } from "@/components/comidas/fechas";
+import { BotonDictar } from "@/components/comidas/boton-dictar";
 import {
   IconoCamara,
   IconoCerrar,
@@ -467,12 +468,24 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
           </div>
 
           {/* ── Descripción ── */}
-          <label className="block">
-            <span className="mb-1.5 block text-sm font-medium">
-              Descripción{" "}
-              {foto && <span className="font-normal text-tinta-suave">(opcional)</span>}
-            </span>
+          <div>
+            <div className="mb-1 flex items-center justify-between gap-2">
+              <label htmlFor="descripcion" className="text-sm font-medium">
+                Descripción{" "}
+                {foto && <span className="font-normal text-tinta-suave">(opcional)</span>}
+              </label>
+              <BotonDictar
+                texto={descripcion}
+                onTexto={(t) => {
+                  setError(null);
+                  setDescripcion(t.slice(0, 2000));
+                }}
+                onError={setError}
+                className={`-mr-3 ${foco}`}
+              />
+            </div>
             <textarea
+              id="descripcion"
               rows={3}
               maxLength={2000}
               value={descripcion}
@@ -488,7 +501,7 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
               }
               className="block min-h-24 w-full resize-y rounded-xl border border-borde bg-superficie px-4 py-3 text-base outline-none placeholder:text-tinta-suave focus:border-primario focus:ring-2 focus:ring-primario/20"
             />
-          </label>
+          </div>
         </fieldset>
 
         {/* ── Guardar (siempre a mano) ── */}

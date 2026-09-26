@@ -97,6 +97,14 @@ export const IconoReloj = (p: P) => (
   </Icono>
 );
 
+export const IconoMicrofono = (p: P) => (
+  <Icono {...p}>
+    <rect x="9" y="3.5" width="6" height="11" rx="3" />
+    <path d="M5.5 11.5a6.5 6.5 0 0 0 13 0" />
+    <path d="M12 18v2.5" />
+  </Icono>
+);
+
 // Barras: el resumen de la semana.
 export const IconoSemana = (p: P) => (
   <Icono {...p}>
