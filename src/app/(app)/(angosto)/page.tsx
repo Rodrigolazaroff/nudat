@@ -8,6 +8,7 @@ import { fechaDeParam, fechaLarga, nombreDia, sumarDias } from "@/components/com
 import { firmarFotos } from "@/components/comidas/firmar-fotos";
 import { TarjetaComida } from "@/components/comidas/tarjeta-comida";
 import { InstalarApp } from "@/components/instalar-app";
+import { IndicadorCirculo } from "@/components/semana/indicador-link";
 import {
   IconoDerecha,
   IconoIzquierda,
@@ -64,7 +65,8 @@ export default async function PaginaHoy({
     <div className="pb-24">
       {/* ── Día: título grande a la izquierda, flechas a la derecha ── */}
       <div className="entrar flex items-start justify-between gap-3">
-        <div className="min-w-0">
+        {/* key: al cambiar de día el título cambia con un fundido aunque la página no se remonte. */}
+        <div key={fecha} className="cambiar min-w-0">
           <h1 className="titulo-pantalla text-[clamp(2.5rem,12vw,3.5rem)]">
             {nombreDia(fecha, hoy)}
           </h1>
@@ -77,9 +79,10 @@ export default async function PaginaHoy({
           <Link
             href={`/?fecha=${anterior}`}
             aria-label={`Ver ${nombreDia(anterior, hoy).toLowerCase()}`}
-            className="boton-circulo foco"
+            className="boton-circulo foco relative"
           >
             <IconoIzquierda className="size-5" />
+            <IndicadorCirculo />
           </Link>
           {esHoy ? (
             <span aria-hidden="true" className="boton-circulo text-tinta-suave opacity-40 shadow-none">
@@ -89,9 +92,10 @@ export default async function PaginaHoy({
             <Link
               href={`/?fecha=${siguiente}`}
               aria-label={`Ver ${nombreDia(siguiente, hoy).toLowerCase()}`}
-              className="boton-circulo foco"
+              className="boton-circulo foco relative"
             >
               <IconoDerecha className="size-5" />
+              <IndicadorCirculo />
             </Link>
           )}
         </div>
@@ -107,7 +111,7 @@ export default async function PaginaHoy({
           {!esHoy && (
             <Link
               href="/"
-              className="foco ml-auto inline-flex h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-primario transition-colors duration-300 ease-premium hover:bg-primario-suave"
+              className="foco ml-auto inline-flex h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-primario transition-[background-color,scale] duration-150 ease-premium select-none hover:bg-primario-suave active:scale-95 active:bg-primario-suave motion-reduce:transition-none motion-reduce:active:scale-100"
             >
               <IconoVolver className="size-4" />
               Volver a hoy

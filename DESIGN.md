@@ -18,8 +18,9 @@ Adaptaciones al producto (ganan sobre la skill):
   títulos grandes, radios generosos y gaps de 12-24px.
 - **Sin eyebrows en mayúsculas** ni métricas gigantes con label chiquito (anti-referencia de
   PRODUCT.md). Etiqueta + valor, sin textos que reexpliquen.
-- Entradas animadas cortas (600ms, 14px, sin blur) y solo al montar; con
-  `prefers-reduced-motion` no hay animación.
+- Movimiento de app nativa (filosofía de Emil Kowalski, skill `emil-design-eng`): todo lo
+  que se toca responde al instante, las entradas son cortas y solo al montar, y lo que se usa
+  muchas veces por día casi no anima. Con `prefers-reduced-motion` queda un fundido.
 
 ## Tokens (`:root` en globals.css → utilidades de Tailwind)
 
@@ -80,17 +81,59 @@ Nunca `shadow-md`/`shadow-lg` de Tailwind ni sombras grises duras.
 
 ### Movimiento
 
-- Curva única: `--curva` = `cubic-bezier(0.32, 0.72, 0, 1)` → utilidad `ease-premium`.
-  Duraciones 250-500ms. No usar `ease-out`, `ease-in-out` ni `linear`.
-- Solo `transform` y `opacity` (y colores/sombras). Nada de animar `top/left/width/height`
-  (excepción heredada: ancho del botón de dictar).
-- Presión: `active:scale-[0.98]` (botones), `0.985` (tarjetas), `0.94-0.96` (círculos/chips).
-  Ya viene en `.boton`, `.boton-circulo` y `.chip`.
-- Entrada: clase `.entrar`, escalonada con `style={{ "--i": n } as CSSProperties}` (60ms por
-  paso; cortar en ~8 para listas largas).
+Antes de animar algo: ¿cuántas veces por día se ve? Lo frecuente (cambiar de día, de
+período, de sección) casi no anima; lo ocasional (abrir el detalle, confirmar borrado,
+guardar) anima corto; nada anima por teclado (flechas en el diálogo de /semana).
+
+- **Curva**: `--curva` = `cubic-bezier(0.32, 0.72, 0, 1)` → utilidad `ease-premium`. Es un
+  ease-out fuerte: arranca rápido (la respuesta se ve enseguida) y frena suave. Nunca
+  `ease-in` en UI. Excepciones: `linear` para lo que gira o pasa constante (ruedita,
+  esqueleto) y ease-in-out para lo que oscila (onda del dictado).
+- **Duraciones** (tokens `--dur-presion` / `--dur-estado`):
+
+  | Qué | Duración |
+  |---|---|
+  | Presión (scale al tocar) | 150ms (`duration-150`) |
+  | Cambio de estado: color, fondo, sombra, texto del botón | 200ms (`duration-200`) |
+  | Aparecer en el lugar (`.aparecer`), abrir el diálogo | 250ms |
+  | Entrada de pantalla (`.entrar`) | 400ms, escalón de 40ms |
+  | Salidas | más rápidas que la entrada: 150ms |
+
+  Nada de UI pasa de 400ms.
+- **Propiedades**: solo `transform`/`scale`/`translate` y `opacity` (más colores, sombras y un
+  `blur` de 2px para disimular cruces). Nunca `transition: all`; listar las propiedades
+  (`transition-[background-color,scale]`). Excepción heredada: el ancho del botón de dictar.
+- **Presión** (`:active`, todo lo que se toca): `scale(0.97)` botones (`.boton`), `0.98`
+  tarjetas y filas, `0.94-0.95` círculos, chips chicos y nav. Además, en el celu el `:active`
+  marca el fondo que en compu marca el hover (`active:bg-…`). Lo apagado no se hunde.
+  `select-none` en lo que se toca (evita la selección de texto al mantener apretado).
+- **Hover** solo con mouse: las utilidades `hover:` de Tailwind 4 ya van dentro de
+  `@media (hover: hover)`; en CSS propio usar `@media (hover: hover) and (pointer: fine)`.
+- **Entrada de pantalla**: `.entrar` (sube 8px y aparece), escalonada con
+  `style={{ "--i": n } as CSSProperties}`; cortar en ~8. Se ve cada vez que llega una pantalla
+  (también al cambiar de día, porque pasa por `loading.tsx`), por eso es corta.
+- **Cambios en el lugar**:
+  - `.aparecer`: desde `scale(0.97)` + opacidad + blur 2px (foto elegida, error, confirmar
+    borrado). Nunca desde `scale(0)`.
+  - `.cambiar`: texto o ícono que se reemplaza dentro de un control. Poner `key` con el valor
+    para que vuelva a correr (texto del botón Guardar, título del día en Hoy, micrófono/onda).
+  - `.asentar`: el tilde de "Guardado" (rebote mínimo, una sola vez).
+- **Carga**: `.girar` para las rueditas (700ms, lineal). Indicadores de navegación
+  (`IndicadorLink`, `IndicadorCirculo`, pastilla de la nav) aparecen con 80-100ms de espera
+  para no parpadear si la pantalla llega al toque.
+- **Diálogo**: `<dialog class="modal">`: entra desde `scale(0.96)` centrado (un modal no sale
+  de su disparador), sale en 150ms; el fondo oscuro hace fundido. Usa `@starting-style` y
+  `allow-discrete`; donde no hay soporte abre y cierra sin animación.
+- **Háptica**: `vibrar()` de `src/components/tacto.ts` (Android; en iOS no hace nada). Solo
+  en guardar, eliminar y empezar a dictar.
+- **Sin View Transitions**: Hoy cambia de día pasando por `loading.tsx` (el esqueleto ya es
+  la transición) y las View Transitions congelan la pantalla entera mientras animan, justo en
+  la navegación más frecuente. CSS alcanza; no hay librería de animación.
 - `backdrop-filter` solo en elementos fijos/sticky (`.isla`).
-- Todo se apaga con `prefers-reduced-motion` (las clases del sistema ya lo hacen; en
-  utilidades sueltas agregar `motion-reduce:transition-none` / `motion-reduce:active:scale-100`).
+- **Movimiento reducido**: sin desplazamientos ni escalas. `.entrar`, `.aparecer`, `.cambiar`
+  y `.asentar` pasan a un fundido de 150ms; halo y onda quietos; rueditas más lentas. En
+  utilidades sueltas: `motion-reduce:transition-none` y `motion-reduce:active:scale-100`.
+- **Impresión**: `@media print` apaga toda animación y transición (la hoja sale quieta).
 
 ## Clases de componente (globals.css, `@layer components`)
 
@@ -148,8 +191,11 @@ Tarjeta (patrón):
 - **Pantalla tipo** (ver Hoy): título display grande a la izquierda + controles `.boton-circulo`
   a la derecha → pastillas de datos → lista de tarjetas con bisel (`gap-3`) → CTA fijo
   (`.boton-primario` con `.boton-icono`) sobre un degradé `from-fondo`.
-- **Formularios**: encabezado con `.boton-circulo` volver + título display; campos `.campo`
-  con `.etiqueta`; opciones en `.chip`; guardar en `.isla rounded-full p-1.5` sticky abajo.
+- **Formularios**: encabezado en una fila (`.boton-circulo` volver + título display); orden
+  Foto → Tipo → Descripción → Fecha y hora (lo que se escribe arriba; fecha y hora ya vienen
+  puestas); campos `.campo` con `.etiqueta`; opciones en `.chip`; guardar en
+  `.isla rounded-full p-1.5` sticky abajo sobre un degradé de `fondo` (lo de abajo se funde) con
+  `data-isla-guardar`, que reserva su alto en `scroll-padding-bottom` al enfocar campos.
 - **Auth** (`src/app/auth/_compartido/ui.tsx`): logo, título display 2.75rem, contenido en
   `Tarjeta` (bisel). `clases.*` mapea a las clases del sistema.
 
@@ -163,11 +209,3 @@ Tarjeta (patrón):
 - No poner tarjetas con bisel dentro de otras tarjetas con bisel (un solo nivel).
 - Imprimir: los fondos no salen; separar con líneas (`border-tinta/…`) y usar `print:` para
   sacar sombras, islas y degradés.
-
-## Qué falta (fase 2)
-
-`/resumen` (`src/app/(app)/(angosto)/resumen/**`, `src/components/resumen/**`),
-`/historial` y `/semana` (`src/app/(app)/semana/**`, `src/components/semana/**`) todavía usan
-el estilo anterior (`rounded-2xl border border-borde bg-superficie`, títulos `text-xl
-font-semibold`). Heredan los tokens nuevos (colores, fuente, nav, header), pero hay que pasarlos
-al sistema siguiendo las reglas de arriba.

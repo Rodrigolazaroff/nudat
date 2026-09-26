@@ -11,7 +11,7 @@ export const clases = {
   input: "campo",
   error: "rounded-2xl bg-peligro-suave px-4 py-3 text-sm text-peligro",
   aviso: "rounded-2xl bg-primario-suave px-4 py-3 text-sm text-tinta",
-  link: "foco rounded font-semibold text-primario underline decoration-primario/30 decoration-2 underline-offset-4 transition-colors duration-300 ease-premium hover:decoration-primario",
+  link: "foco rounded font-semibold text-primario underline decoration-primario/30 decoration-2 underline-offset-4 transition-colors duration-200 ease-premium hover:decoration-primario",
 };
 
 export function Marca() {

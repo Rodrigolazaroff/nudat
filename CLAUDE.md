@@ -28,6 +28,7 @@ en PDF (por ejemplo, para llevárselo a su nutri).
   - Clientes en `src/lib/supabase/` (`client.ts` navegador, `server.ts` server, `proxy.ts` refresco de sesión).
   - Migraciones en `supabase/migrations/`.
 - UI en español (Argentina). Pensada mobile-first: se carga desde el celular.
+- Diseño: sistema visual en `DESIGN.md` (tokens y clases en `globals.css`: `.bisel`, `.boton*`, `.chip*`, `.entrar`, motion). Contexto de producto en `PRODUCT.md`. Nada de textos que reexpliquen un dato.
 - Logo: `src/components/logo.tsx` (cuaderno con brote); íconos en `src/app/icon.svg`, `apple-icon.png` y `public/icon-*.png`.
 - PWA instalable: `src/app/manifest.ts` + tarjeta `src/components/instalar-app.tsx` en Hoy (`beforeinstallprompt`; sin service worker, no hace falta en Chrome ≥ 108).
 

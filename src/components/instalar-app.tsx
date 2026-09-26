@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { IconoCerrar } from "@/components/comidas/iconos";
 import { Isotipo } from "@/components/logo";
 
@@ -150,11 +150,26 @@ export function InstalarApp() {
   if (instalada || descartada) return null;
   if (!eventoActual && !iosSafari) return null;
 
+  return <Tarjeta conBoton={eventoActual !== null} />;
+}
+
+// Al descartar se va con un fundido corto (más rápido que la entrada) y recién ahí se oculta.
+function Tarjeta({ conBoton }: { conBoton: boolean }) {
+  const [saliendo, setSaliendo] = useState(false);
+
+  function alDescartar() {
+    const reducido = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    setSaliendo(true);
+    window.setTimeout(descartar, reducido ? 0 : 150);
+  }
+
   return (
     <section
       aria-labelledby="instalar-app-titulo"
       // Aparece recién después de hidratar: entra con un fundido corto en vez de "saltar".
-      className="bisel relative mt-5 transition-[opacity,translate] duration-500 ease-premium starting:translate-y-2 starting:opacity-0 motion-reduce:transition-none"
+      className={`bisel relative mt-5 transition-[opacity,translate,scale] ease-premium starting:translate-y-2 starting:opacity-0 motion-reduce:transition-none ${
+        saliendo ? "pointer-events-none scale-[0.97] opacity-0 duration-150" : "duration-300"
+      }`}
     >
       <div className="bisel-nucleo p-4">
         <div className="flex items-center gap-3.5 pr-10">
@@ -163,7 +178,7 @@ export function InstalarApp() {
             <h2 id="instalar-app-titulo" className="font-display text-lg font-bold tracking-tight">
               Instalar nudat
             </h2>
-            {eventoActual ? null : (
+            {conBoton ? null : (
               <p className="mt-0.5 text-sm text-pretty text-tinta-suave">
                 Tocá Compartir y después “Agregar a inicio”.
               </p>
@@ -171,7 +186,7 @@ export function InstalarApp() {
           </div>
         </div>
 
-        {eventoActual ? (
+        {conBoton ? (
           <button type="button" onClick={instalar} className="boton boton-primario foco mt-4 w-full">
             Instalar app
           </button>
@@ -179,10 +194,10 @@ export function InstalarApp() {
 
         <button
           type="button"
-          onClick={descartar}
+          onClick={alDescartar}
           aria-label="No mostrar más"
           title="No mostrar más"
-          className="foco absolute top-3 right-3 flex size-11 items-center justify-center rounded-full text-tinta-suave transition-colors duration-300 ease-premium hover:bg-hundido hover:text-tinta"
+          className="foco absolute top-3 right-3 flex size-11 items-center justify-center rounded-full text-tinta-suave transition-[background-color,color,scale] duration-150 ease-premium hover:bg-hundido hover:text-tinta active:scale-94 active:bg-hundido motion-reduce:transition-none motion-reduce:active:scale-100"
         >
           <IconoCerrar className="size-5" />
         </button>

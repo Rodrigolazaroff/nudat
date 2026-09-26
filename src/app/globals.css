@@ -41,8 +41,11 @@
   --radio-nucleo: calc(1.75rem - 0.375rem);
   --radio-campo: 1rem;
 
-  /* Movimiento: curva con masa (arranca rápido, frena suave). */
+  /* Movimiento: curva con masa (arranca rápido, frena suave). Reglas en DESIGN.md → Movimiento.
+     Duraciones: presión 150ms, cambios de estado 200ms, entradas 250-400ms. Nada pasa de 400ms. */
   --curva: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-presion: 150ms;
+  --dur-estado: 200ms;
 }
 
 @theme inline {
@@ -81,6 +84,15 @@
 
 html {
   background: var(--fondo);
+  /* Al hacer foco (teclado, "siguiente" del teclado del celu) lo enfocado no queda debajo
+     del header de vidrio ni de lo que flota abajo. */
+  scroll-padding-top: calc(env(safe-area-inset-top) + 5.5rem);
+}
+html:has([data-isla-guardar]) {
+  scroll-padding-bottom: calc(7rem + env(safe-area-inset-bottom));
+}
+html:has([data-nav-inferior]) {
+  scroll-padding-bottom: calc(10rem + env(safe-area-inset-bottom));
 }
 
 body {
@@ -131,14 +143,16 @@ body::after {
     padding-inline: 1.5rem;
     font-weight: 600;
     letter-spacing: -0.01em;
+    -webkit-user-select: none;
+    user-select: none;
     transition:
-      transform 300ms var(--curva),
-      background-color 300ms var(--curva),
-      box-shadow 300ms var(--curva),
-      opacity 200ms var(--curva);
+      transform var(--dur-presion) var(--curva),
+      background-color var(--dur-estado) var(--curva),
+      box-shadow var(--dur-estado) var(--curva),
+      opacity var(--dur-estado) var(--curva);
   }
   .boton:active:not(:disabled) {
-    transform: scale(0.98);
+    transform: scale(0.97);
   }
   .boton:disabled {
     cursor: default;
@@ -148,7 +162,13 @@ body::after {
     color: var(--sobre-primario);
     box-shadow: var(--sombra-boton);
   }
-  .boton-primario:hover:not(:disabled) {
+  /* Hover solo con mouse: en el celu el :hover queda "pegado" después de tocar. */
+  @media (hover: hover) and (pointer: fine) {
+    .boton-primario:hover:not(:disabled) {
+      background: var(--primario-hover);
+    }
+  }
+  .boton-primario:active:not(:disabled) {
     background: var(--primario-hover);
   }
   .boton-secundario {
@@ -156,14 +176,21 @@ body::after {
     color: var(--tinta);
     box-shadow: var(--brillo-interno), 0 0 0 1px var(--borde), var(--sombra-suave);
   }
-  .boton-secundario:hover:not(:disabled) {
-    background: #ffffff;
-    box-shadow: var(--brillo-interno), 0 0 0 1px rgb(47 107 79 / 0.3), var(--sombra-suave);
+  @media (hover: hover) and (pointer: fine) {
+    .boton-secundario:hover:not(:disabled) {
+      background: #ffffff;
+      box-shadow: var(--brillo-interno), 0 0 0 1px rgb(47 107 79 / 0.3), var(--sombra-suave);
+    }
   }
   .boton-fantasma {
     color: var(--primario);
   }
-  .boton-fantasma:hover:not(:disabled) {
+  @media (hover: hover) and (pointer: fine) {
+    .boton-fantasma:hover:not(:disabled) {
+      background: var(--primario-suave);
+    }
+  }
+  .boton-fantasma:active:not(:disabled) {
     background: var(--primario-suave);
   }
   .boton-peligro {
@@ -181,14 +208,16 @@ body::after {
     justify-content: center;
     border-radius: 9999px;
     background: rgb(255 255 255 / 0.16);
-    transition: transform 400ms var(--curva);
+    transition: transform 300ms var(--curva);
   }
   .boton-secundario .boton-icono {
     background: var(--primario-suave);
     color: var(--primario);
   }
-  .group:hover .boton-icono {
-    transform: translateX(2px) scale(1.05);
+  @media (hover: hover) and (pointer: fine) {
+    .group:hover .boton-icono {
+      transform: translateX(2px) scale(1.05);
+    }
   }
 
   /* Botón redondo chico (volver, día anterior/siguiente, cerrar). 44px. */
@@ -203,15 +232,23 @@ body::after {
     background: var(--superficie);
     color: var(--tinta);
     box-shadow: var(--brillo-interno), 0 0 0 1px var(--borde), var(--sombra-suave);
+    -webkit-user-select: none;
+    user-select: none;
     transition:
-      transform 300ms var(--curva),
-      box-shadow 300ms var(--curva);
+      transform var(--dur-presion) var(--curva),
+      box-shadow var(--dur-estado) var(--curva);
   }
-  .boton-circulo:hover {
-    box-shadow: var(--brillo-interno), 0 0 0 1px rgb(47 107 79 / 0.3), var(--sombra-suave);
+  @media (hover: hover) and (pointer: fine) {
+    .boton-circulo:hover {
+      box-shadow: var(--brillo-interno), 0 0 0 1px rgb(47 107 79 / 0.3), var(--sombra-suave);
+    }
   }
   .boton-circulo:active {
     transform: scale(0.94);
+  }
+  /* El círculo apagado (un <span>, p. ej. "día siguiente" estando en hoy) no se hunde. */
+  span.boton-circulo:active {
+    transform: none;
   }
 
   /* Bisel doble: bandeja externa (hundida, hairline) + núcleo con su propio brillo.
@@ -248,7 +285,7 @@ body::after {
     color: var(--tinta);
     outline: none;
     box-shadow: inset 0 1px 2px rgb(20 32 26 / 0.05), 0 0 0 1px var(--borde);
-    transition: box-shadow 250ms var(--curva);
+    transition: box-shadow var(--dur-estado) var(--curva);
   }
   .campo::placeholder {
     color: var(--tinta-suave);
@@ -283,11 +320,13 @@ body::after {
     background: var(--superficie);
     color: var(--tinta);
     box-shadow: 0 0 0 1px var(--borde);
+    -webkit-user-select: none;
+    user-select: none;
     transition:
-      background-color 250ms var(--curva),
-      color 250ms var(--curva),
-      box-shadow 250ms var(--curva),
-      transform 250ms var(--curva);
+      background-color var(--dur-estado) var(--curva),
+      color var(--dur-estado) var(--curva),
+      box-shadow var(--dur-estado) var(--curva),
+      transform var(--dur-presion) var(--curva);
   }
   .chip:active {
     transform: scale(0.96);
@@ -324,20 +363,79 @@ body::after {
 }
 
 /* ─── Movimiento ───────────────────────────────────────────────────────────── */
+/* Reglas en DESIGN.md → Movimiento. Solo transform, opacity y (poco) filter. */
 
-/* Entrada: sube y aparece. Escalonar con style={{ "--i": n }} (n = 0, 1, 2…). */
+/* Entrada de pantalla: sube apenas y aparece. Corta: Hoy se abre muchas veces por día.
+   Escalonar con style={{ "--i": n }} (n = 0, 1, 2…; 40ms por paso). */
 @keyframes entrar {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(8px);
   }
 }
 .entrar {
-  animation: entrar 600ms var(--curva) both;
-  animation-delay: calc(var(--i, 0) * 60ms);
+  animation: entrar 400ms var(--curva) both;
+  animation-delay: calc(var(--i, 0) * 40ms);
 }
 
-/* Esqueleto: brillo que pasa (en vez de parpadeo). */
+/* Aparecer en el lugar (cambios de estado: foto elegida, error, confirmar borrado).
+   Nada nace de scale(0): arranca en 0.97 y un blur de 2px disimula el cambio. */
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+    filter: blur(2px);
+  }
+}
+.aparecer {
+  animation: aparecer 250ms var(--curva) both;
+}
+
+/* Cambio de texto o ícono dentro de un control (Guardar → Guardando… → Guardado). */
+@keyframes cambiar {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+    filter: blur(2px);
+  }
+}
+.cambiar {
+  animation: cambiar var(--dur-estado) var(--curva) both;
+}
+
+/* Tilde de "listo": se asienta con un rebote mínimo. */
+@keyframes asentar {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+.asentar {
+  animation: asentar 300ms var(--curva) both;
+}
+
+/* Fundido puro: la alternativa de todas las entradas con movimiento reducido. */
+@keyframes fundido {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Ruedita de carga. Rápida (700ms) y lineal: gira constante y se siente más ágil. */
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.girar {
+  animation: girar 700ms linear infinite;
+}
+
+/* Esqueleto: brillo que pasa (en vez de parpadeo). Movimiento constante: lineal. */
 @keyframes brillo {
   from {
     background-position: 150% 0;
@@ -348,24 +446,92 @@ body::after {
 }
 .esqueleto {
   background: linear-gradient(90deg, var(--hundido) 30%, #f6f2ea 50%, var(--hundido) 70%) 0 0 / 200% 100%;
-  animation: brillo 1.4s var(--curva) infinite;
+  animation: brillo 1.4s linear infinite;
 }
 
-/* Onda del dictado por voz (boton-dictar.tsx). */
+/* Dictado por voz (boton-dictar.tsx): barras que oscilan (ida y vuelta: ease-in-out) y un
+   halo que late alrededor del botón mientras escucha. */
 @keyframes onda {
   0%, 100% { transform: scaleY(0.3); }
   50% { transform: scaleY(1); }
 }
 .onda-barra {
-  animation: onda 900ms var(--curva) infinite;
+  animation: onda 900ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+@keyframes latir {
+  from {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.35, 1.6);
+  }
+}
+.halo-dictado {
+  animation: latir 1.4s var(--curva) infinite;
 }
 
+/* Diálogo modal (<dialog class="modal">): entra desde 0.96 centrado (un modal no sale de
+   un disparador) y se va más rápido de lo que entra. Sin soporte de @starting-style o
+   allow-discrete (Safari viejo) abre y cierra sin animación, igual que antes. */
+.modal {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 250ms var(--curva),
+    transform 250ms var(--curva),
+    overlay 250ms allow-discrete,
+    display 250ms allow-discrete;
+}
+.modal:not([open]) {
+  opacity: 0;
+  transform: scale(0.97);
+  transition-duration: 150ms;
+}
+@starting-style {
+  .modal[open] {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+.modal::backdrop {
+  opacity: 1;
+  transition:
+    opacity 250ms var(--curva),
+    overlay 250ms allow-discrete,
+    display 250ms allow-discrete;
+}
+.modal:not([open])::backdrop {
+  opacity: 0;
+  transition-duration: 150ms;
+}
+@starting-style {
+  .modal[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+/* Movimiento reducido: sin desplazamientos ni escalas. Lo que ayuda a entender un cambio
+   (aparecer, cambiar de estado, abrir el diálogo) queda como fundido corto. */
 @media (prefers-reduced-motion: reduce) {
   .entrar,
+  .aparecer,
+  .cambiar,
+  .asentar {
+    animation: fundido 150ms ease both;
+  }
   .esqueleto {
     animation: none;
   }
+  .halo-dictado {
+    animation: none;
+    opacity: 0;
+  }
   .onda-barra { animation: none; transform: scaleY(0.6); }
+  .girar {
+    animation-duration: 1.5s;
+  }
   .boton,
   .boton-circulo,
   .chip,
@@ -377,6 +543,17 @@ body::after {
   .boton-circulo:active,
   .chip:active {
     transform: none;
+  }
+  .modal,
+  .modal:not([open]) {
+    transform: none;
+    transition-property: opacity, overlay, display;
+    transition-duration: 150ms;
+  }
+  @starting-style {
+    .modal[open] {
+      transform: none;
+    }
   }
 }
 
@@ -391,5 +568,12 @@ body::after {
   body::before,
   body::after {
     display: none;
+  }
+  /* La hoja sale quieta: nada a mitad de una animación ni con opacidad parcial. */
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
   }
 }

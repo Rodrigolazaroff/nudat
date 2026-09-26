@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import {
@@ -29,6 +29,7 @@ export function NavInferior() {
       {/* Cápsula flotante verde profundo, despegada de los bordes. */}
       <nav
         aria-label="Secciones"
+        data-nav-inferior
         className="fixed inset-x-0 bottom-0 z-30 px-3 pb-[calc(env(safe-area-inset-bottom)_+_0.75rem)] print:hidden"
       >
         <div className="mx-auto flex h-16 max-w-lg gap-1 rounded-full bg-primario-profundo p-1.5 shadow-[inset_0_1px_0_rgb(255_255_255/0.08),0_20px_40px_-12px_rgb(23_54_40/0.55)]">
@@ -75,14 +76,29 @@ function ItemNav({
     <Link
       href={href}
       aria-current={activo ? "page" : undefined}
-      className={`relative flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-full text-[0.6875rem] leading-none outline-none transition-[background-color,color,transform] duration-500 ease-premium focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-acento active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100 ${
+      className={`relative flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-full text-[0.6875rem] leading-none outline-none select-none transition-[background-color,color,scale] duration-200 ease-premium focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-acento active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100 ${
         activo
           ? "bg-fondo font-bold text-primario-profundo shadow-[inset_0_1px_0_rgb(255_255_255/0.9)]"
           : "font-medium text-sobre-profundo-suave hover:text-sobre-primario"
       }`}
     >
-      <span className="[&>svg]:size-[1.35rem]">{icono}</span>
-      {children}
+      {activo ? null : <Pendiente />}
+      <span className="relative [&>svg]:size-[1.35rem]">{icono}</span>
+      <span className="relative">{children}</span>
     </Link>
+  );
+}
+
+// Mientras navega a otra sección: la píldora se aclara apenas, así el toque tiene respuesta
+// aunque la pantalla nueva tarde. Con 80ms de espera para no parpadear si llega al toque.
+function Pendiente() {
+  const { pending } = useLinkStatus();
+  return (
+    <span
+      aria-hidden="true"
+      className={`pointer-events-none absolute inset-0 rounded-full bg-sobre-primario/12 transition-opacity ease-premium motion-reduce:transition-none ${
+        pending ? "opacity-100 delay-80 duration-200" : "opacity-0 duration-150"
+      }`}
+    />
   );
 }

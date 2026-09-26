@@ -40,7 +40,7 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
             <form action="/auth/cerrar-sesion" method="post">
               <button
                 type="submit"
-                className="foco h-12 rounded-full px-4 text-sm font-semibold text-tinta transition-colors duration-300 ease-premium hover:bg-hundido"
+                className="foco h-12 rounded-full px-4 text-sm font-semibold text-tinta transition-[background-color,scale] duration-150 ease-premium select-none hover:bg-hundido active:scale-95 active:bg-hundido motion-reduce:transition-none motion-reduce:active:scale-100"
               >
                 Salir
               </button>

@@ -17,6 +17,7 @@ import { BUCKET_FOTOS, TIPOS_COMIDA, sugerirTipo } from "@/lib/comidas";
 import { comprimirImagen, leerFechaFoto, rutaFoto, type FechaHora } from "@/lib/fotos";
 import { diaYMes, esFechaValida, nombreDia, sumarDias } from "@/components/comidas/fechas";
 import { BotonDictar } from "@/components/comidas/boton-dictar";
+import { vibrar } from "@/components/tacto";
 import {
   IconoCamara,
   IconoCerrar,
@@ -247,6 +248,7 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
       }
 
       setFase("listo");
+      vibrar();
       startTransition(() => router.replace(`/?fecha=${fecha}`));
     } catch (err) {
       // La comida no se guardó: que la foto recién subida no quede huérfana.
@@ -281,28 +283,32 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
     if (data.length > 0 && comida.fotoPath) await borrarFoto(supabase, comida.fotoPath);
 
     setFase("listo");
+    vibrar();
     startTransition(() => router.replace(`/?fecha=${valores.fecha}`));
   }
 
-  const guardandoAhora =
-    fase === "subiendo" || fase === "guardando" || (fase === "listo" && !confirmandoBorrado);
+  // "listo" con la confirmación abierta es un borrado, no un guardado.
+  const guardado = fase === "listo" && !confirmandoBorrado;
+  const guardandoAhora = fase === "subiendo" || fase === "guardando" || guardado;
   const textoBoton =
     fase === "subiendo"
       ? "Subiendo foto…"
-      : guardandoAhora
-        ? "Guardando…"
-        : procesandoFoto
-          ? "Esperando la foto…"
-          : comida
-            ? "Guardar cambios"
-            : cuando.tipo === "bebida"
-              ? "Guardar bebida"
-              : "Guardar comida";
+      : guardado
+        ? "Guardado"
+        : guardandoAhora
+          ? "Guardando…"
+          : procesandoFoto
+            ? "Esperando la foto…"
+            : comida
+              ? "Guardar cambios"
+              : cuando.tipo === "bebida"
+                ? "Guardar bebida"
+                : "Guardar comida";
 
   return (
     <>
       <form onSubmit={guardar} noValidate aria-busy={ocupado}>
-        <fieldset disabled={ocupado} className="flex min-w-0 flex-col gap-6">
+        <fieldset disabled={ocupado} className="flex min-w-0 flex-col gap-5">
           {/* ── Foto ── */}
           <section aria-label="Foto del plato">
             <input
@@ -324,17 +330,17 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
             />
 
             {procesandoFoto ? (
-              <div role="status" className="bisel">
+              <div role="status" className="bisel aparecer">
                 <div className="bisel-nucleo flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 text-sm font-medium text-tinta-suave">
                   <span
                     aria-hidden="true"
-                    className="size-6 animate-spin rounded-full border-2 border-primario border-t-transparent motion-reduce:animate-none"
+                    className="girar size-6 rounded-full border-2 border-primario border-t-transparent"
                   />
                   Preparando la foto…
                 </div>
               </div>
             ) : foto ? (
-              <div className="bisel relative">
+              <div className="bisel aparecer relative">
                 {foto.url ? (
                   // Vista previa local (blob:) o URL firmada: <img> simple, sin next/image.
                   // eslint-disable-next-line @next/next/no-img-element
@@ -352,30 +358,31 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
                   type="button"
                   onClick={quitarFoto}
                   aria-label="Quitar foto"
-                  className="foco absolute top-3.5 right-3.5 flex size-12 items-center justify-center rounded-full bg-tinta/65 text-sobre-primario shadow-[inset_0_1px_0_rgb(255_255_255/0.2)] transition-[background-color,transform] duration-300 ease-premium hover:bg-tinta/80 active:scale-95 motion-reduce:transition-none"
+                  className="foco absolute top-3.5 right-3.5 flex size-12 items-center justify-center rounded-full bg-tinta/65 text-sobre-primario shadow-[inset_0_1px_0_rgb(255_255_255/0.2)] transition-[background-color,scale] duration-150 ease-premium hover:bg-tinta/80 active:scale-94 active:bg-tinta/80 motion-reduce:transition-none motion-reduce:active:scale-100"
                 >
                   <IconoCerrar className="size-5" />
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-3">
+              // Más bajos que antes (128px): así Tipo y Descripción entran sobre la isla de Guardar.
+              <div className="aparecer grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => inputCamara.current?.click()}
-                  className="boton boton-primario foco h-40 flex-col gap-3 rounded-caja px-3"
+                  className="boton boton-primario foco h-32 flex-col gap-2.5 rounded-caja px-3"
                 >
-                  <span className="flex size-14 items-center justify-center rounded-full bg-white/15 shadow-[inset_0_1px_0_rgb(255_255_255/0.2)]">
-                    <IconoCamara className="size-7" />
+                  <span className="flex size-12 items-center justify-center rounded-full bg-white/15 shadow-[inset_0_1px_0_rgb(255_255_255/0.2)]">
+                    <IconoCamara className="size-6" />
                   </span>
                   Sacar foto
                 </button>
                 <button
                   type="button"
                   onClick={() => inputGaleria.current?.click()}
-                  className="boton boton-secundario foco h-40 flex-col gap-3 rounded-caja px-3 text-center"
+                  className="boton boton-secundario foco h-32 flex-col gap-2.5 rounded-caja px-3 text-center leading-tight"
                 >
-                  <span className="flex size-14 items-center justify-center rounded-full bg-primario-suave text-primario">
-                    <IconoGaleria className="size-7" />
+                  <span className="flex size-12 items-center justify-center rounded-full bg-primario-suave text-primario">
+                    <IconoGaleria className="size-6" />
                   </span>
                   Elegir de la galería
                 </button>
@@ -385,7 +392,7 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
             {cuando.antesDeLaFoto && (
               <div
                 role="status"
-                className="mt-3 flex items-center gap-3 rounded-2xl bg-primario-suave py-1 pr-1 pl-4 text-sm font-medium text-primario transition-opacity duration-300 ease-premium starting:opacity-0 motion-reduce:transition-none"
+                className="mt-3 flex items-center gap-3 rounded-2xl bg-primario-suave py-1 pr-1 pl-4 text-sm font-medium text-primario aparecer"
               >
                 <IconoReloj className="size-5 shrink-0" />
                 <p className="flex-1 py-2">
@@ -394,7 +401,7 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
                 <button
                   type="button"
                   onClick={() => despachar({ accion: "deshacerFechaDeFoto" })}
-                  className="foco h-12 shrink-0 rounded-xl px-3 font-semibold underline underline-offset-2 transition-colors duration-300 ease-premium hover:bg-primario/10"
+                  className="foco h-12 shrink-0 rounded-xl px-3 font-semibold underline underline-offset-2 transition-colors duration-200 ease-premium hover:bg-primario/10 active:bg-primario/10"
                 >
                   Deshacer
                 </button>
@@ -431,37 +438,6 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
             </div>
           </fieldset>
 
-          {/* ── Fecha y hora ── */}
-          <div className="grid grid-cols-2 gap-3">
-            <label className="block min-w-0">
-              <span className="etiqueta mb-2 block">Fecha</span>
-              <input
-                type="date"
-                required
-                max={hoy}
-                value={cuando.fecha}
-                onChange={(e) => {
-                  setError(null);
-                  despachar({ accion: "fecha", valor: e.target.value });
-                }}
-                className={claseFechaHora}
-              />
-            </label>
-            <label className="block min-w-0">
-              <span className="etiqueta mb-2 block">Hora</span>
-              <input
-                type="time"
-                required
-                value={cuando.hora}
-                onChange={(e) => {
-                  setError(null);
-                  despachar({ accion: "hora", valor: e.target.value });
-                }}
-                className={claseFechaHora}
-              />
-            </label>
-          </div>
-
           {/* ── Descripción ── */}
           <div>
             <div className="mb-1 flex items-center justify-between gap-2">
@@ -494,18 +470,55 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
                   ? "¿Qué tomaste? Ej: 1 vaso de agua, café con leche, 2 cervezas"
                   : "¿Qué comiste? Ej: 2 tostadas con queso y café con leche"
               }
-              className="campo min-h-28 resize-y"
+              className="campo min-h-24 resize-y"
             />
+          </div>
+
+          {/* ── Fecha y hora ── */}
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block min-w-0">
+              <span className="etiqueta mb-2 block">Fecha</span>
+              <input
+                type="date"
+                required
+                max={hoy}
+                value={cuando.fecha}
+                onChange={(e) => {
+                  setError(null);
+                  despachar({ accion: "fecha", valor: e.target.value });
+                }}
+                className={claseFechaHora}
+              />
+            </label>
+            <label className="block min-w-0">
+              <span className="etiqueta mb-2 block">Hora</span>
+              <input
+                type="time"
+                required
+                value={cuando.hora}
+                onChange={(e) => {
+                  setError(null);
+                  despachar({ accion: "hora", valor: e.target.value });
+                }}
+                className={claseFechaHora}
+              />
+            </label>
           </div>
         </fieldset>
 
         {/* ── Guardar (siempre a mano) ── */}
-        {/* Isla flotante: se despega del borde de abajo, vidrio sobre el formulario. */}
-        <div className="sticky bottom-0 z-10 mt-8 pt-2 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))]">
+        {/* Isla flotante sobre un degradé del fondo: lo que queda debajo se funde en vez de
+            verse a medias detrás del vidrio. data-isla-guardar reserva su alto al hacer foco
+            en un campo (scroll-padding en globals.css). */}
+        <div
+          data-isla-guardar
+          className="sticky bottom-0 z-10 -mx-4 mt-6 bg-linear-to-t from-fondo from-55% via-fondo/85 to-transparent px-4 pt-5 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))]"
+        >
           {error && (
             <p
+              key={error}
               role="alert"
-              className="mb-3 rounded-2xl bg-peligro-suave px-4 py-3 text-sm font-medium text-peligro shadow-suave"
+              className="aparecer mb-3 rounded-2xl bg-peligro-suave px-4 py-3 text-sm font-medium text-peligro shadow-suave"
             >
               {error}
             </p>
@@ -520,10 +533,15 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
               }`}
             >
               <span aria-hidden="true" className="size-10 shrink-0" />
-              {textoBoton}
+              {/* Cada estado entra con un fundido corto; al terminar, el tilde se asienta. */}
+              <span key={textoBoton} className="cambiar">
+                {textoBoton}
+              </span>
               <span aria-hidden="true" className="boton-icono">
-                {guardandoAhora ? (
-                  <span className="size-4 animate-spin rounded-full border-2 border-sobre-primario border-t-transparent motion-reduce:animate-none" />
+                {guardado ? (
+                  <IconoListo key="guardado" className="asentar size-5" />
+                ) : guardandoAhora ? (
+                  <span className="girar size-4 rounded-full border-2 border-sobre-primario border-t-transparent" />
                 ) : (
                   <IconoListo className="size-5" />
                 )}
@@ -542,7 +560,7 @@ export function FormularioComida({ usuarioId, hoy, valores, comida }: Formulario
               onKeyDown={(e) => {
                 if (e.key === "Escape" && !ocupado) cancelarBorrado();
               }}
-              className="rounded-caja bg-peligro-suave p-5 shadow-[inset_0_0_0_1px_rgb(179_38_30/0.15)]"
+              className="aparecer rounded-caja bg-peligro-suave p-5 shadow-[inset_0_0_0_1px_rgb(179_38_30/0.15)]"
             >
               <p id="confirmar-borrado" className="font-display text-lg font-bold tracking-tight text-peligro">
                 ¿Eliminar este registro?

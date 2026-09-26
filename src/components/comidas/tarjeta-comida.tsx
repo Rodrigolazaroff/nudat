@@ -23,9 +23,9 @@ export function TarjetaComida({ comida, fotoUrl }: Props) {
   return (
     <Link
       href={`/comida/${comida.id}`}
-      className="bisel foco group block transition-transform duration-500 ease-premium active:scale-[0.985] motion-reduce:transition-none motion-reduce:active:scale-100"
+      className="bisel foco group block transition-[scale] duration-150 ease-premium select-none active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100"
     >
-      <div className="bisel-nucleo flex items-center gap-4 p-2.5 pr-3 transition-shadow duration-500 ease-premium group-hover:shadow-flotante">
+      <div className="bisel-nucleo flex items-center gap-4 p-2.5 pr-3 transition-shadow duration-200 ease-premium group-hover:shadow-flotante">
         {fotoUrl ? (
           // URL firmada de Supabase: <img> simple (next/image necesitaría remotePatterns).
           // eslint-disable-next-line @next/next/no-img-element
@@ -66,7 +66,7 @@ export function TarjetaComida({ comida, fotoUrl }: Props) {
           )}
         </div>
 
-        <IconoDerecha className="size-5 shrink-0 text-tinta-suave/50 transition-transform duration-500 ease-premium group-hover:translate-x-0.5" />
+        <IconoDerecha className="size-5 shrink-0 text-tinta-suave/50 transition-transform duration-200 ease-premium group-hover:translate-x-0.5 motion-reduce:transition-none" />
       </div>
     </Link>
   );

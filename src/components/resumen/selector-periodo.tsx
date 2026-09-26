@@ -26,13 +26,14 @@ export function SelectorPeriodo({ actual }: { actual: Periodo }) {
                 href={hrefPeriodo(p)}
                 scroll={false}
                 aria-current={activo ? "page" : undefined}
-                className={`chip foco w-full justify-center gap-2 px-3 ${
+                // En una línea a 360px: sin separador a la izquierda, la ruedita va en el
+                // borde (absoluta) y no le quita ancho al texto.
+                className={`chip foco relative w-full justify-center px-5 text-sm tracking-tight whitespace-nowrap ${
                   activo ? "chip-activo" : "hover:shadow-[0_0_0_1px_rgb(47_107_79_/_0.3)]"
                 }`}
               >
-                <span aria-hidden="true" className="size-3 shrink-0" />
                 Últimos {p} días
-                <IndicadorLink />
+                <IndicadorLink className="absolute top-1/2 right-2 -mt-1.5" />
               </Link>
             </li>
           );

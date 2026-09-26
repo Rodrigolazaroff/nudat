@@ -72,7 +72,7 @@ export default async function PaginaHistorial() {
             <li key={fecha}>
               <Link
                 href={`/?fecha=${fecha}`}
-                className="group flex min-h-18 items-center gap-3 px-4 py-3 outline-none transition-colors duration-300 ease-premium hover:bg-hundido/50 focus-visible:bg-primario-suave focus-visible:ring-2 focus-visible:ring-primario focus-visible:ring-inset motion-reduce:transition-none"
+                className="group flex min-h-18 items-center gap-3 px-4 py-3 outline-none select-none transition-colors duration-150 ease-premium hover:bg-hundido/50 active:bg-hundido/70 focus-visible:bg-primario-suave focus-visible:ring-2 focus-visible:ring-primario focus-visible:ring-inset motion-reduce:transition-none"
               >
                 <span
                   className={`flex size-11 shrink-0 items-center justify-center rounded-full font-display text-lg font-bold tabular-nums ${
@@ -91,7 +91,7 @@ export default async function PaginaHistorial() {
                   </p>
                   <Estado fecha={fecha} hoy={hoy} cantidad={cantidad} faltan={faltan} />
                 </div>
-                <IconoDerecha className="size-5 shrink-0 text-tinta-suave/50 transition-transform duration-500 ease-premium group-hover:translate-x-0.5 motion-reduce:transition-none" />
+                <IconoDerecha className="size-5 shrink-0 text-tinta-suave/50 transition-transform duration-200 ease-premium group-hover:translate-x-0.5 motion-reduce:transition-none" />
               </Link>
             </li>
           ))}

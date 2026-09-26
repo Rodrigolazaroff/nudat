@@ -36,7 +36,7 @@ export function CampoClave({ name, etiqueta, ayuda, ...props }: CampoClaveProps)
           onClick={() => setVisible((v) => !v)}
           aria-controls={name}
           aria-label={visible ? "Ocultar contraseña" : "Mostrar contraseña"}
-          className="absolute inset-y-1.5 right-1.5 flex min-w-12 items-center justify-center rounded-xl px-3.5 text-sm font-semibold text-primario transition-colors duration-300 ease-premium hover:bg-primario-suave focus-visible:outline-2 focus-visible:outline-primario"
+          className="absolute inset-y-1.5 right-1.5 flex min-w-12 items-center justify-center rounded-xl px-3.5 text-sm font-semibold text-primario transition-colors duration-150 ease-premium select-none hover:bg-primario-suave active:bg-primario-suave focus-visible:outline-2 focus-visible:outline-primario"
         >
           {visible ? "Ocultar" : "Mostrar"}
         </button>

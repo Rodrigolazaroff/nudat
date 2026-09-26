@@ -88,7 +88,7 @@ export function TiraConstancia({
               <Link
                 href={`/?fecha=${d.fecha}`}
                 aria-label={etiqueta}
-                className={`relative flex h-15 flex-col items-center justify-center rounded-2xl leading-tight transition-transform duration-300 ease-premium active:scale-[0.94] motion-reduce:transition-none motion-reduce:active:scale-100 ${clases} focus-visible:outline-2 focus-visible:outline-primario ${
+                className={`relative flex h-15 flex-col items-center justify-center rounded-2xl leading-tight transition-[scale] duration-150 ease-premium select-none active:scale-[0.94] motion-reduce:transition-none motion-reduce:active:scale-100 ${clases} focus-visible:outline-2 focus-visible:outline-primario ${
                   esHoy
                     ? "ring-2 ring-tinta ring-offset-2 ring-offset-fondo focus-visible:outline-offset-5"
                     : "focus-visible:outline-offset-2"

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { IconoMicrofono } from "@/components/comidas/iconos";
+import { vibrar } from "@/components/tacto";
 
 // Web Speech API: Chrome (Android) y Safari (iOS) la exponen con prefijo webkit.
 // No está en los tipos de TS, así que se declara lo mínimo que se usa.
@@ -92,38 +93,58 @@ export function BotonDictar({
     try {
       r.start();
       setEscuchando(true);
+      vibrar(10);
     } catch {
       reconocedor.current = null;
       onError("No se pudo dictar. Probá de nuevo.");
     }
   }
 
+  // Escuchando: se estira a píldora verde con la onda adentro y un halo que late alrededor
+  // (el micrófono está abierto). El contenido cambia con un fundido corto, no de golpe.
   return (
     <button
       type="button"
       onClick={() => (escuchando ? reconocedor.current?.stop() : empezar())}
       aria-pressed={escuchando}
       aria-label={escuchando ? "Dejar de dictar" : "Dictar descripción"}
-      className={`inline-flex h-11 items-center justify-center rounded-full transition-[background-color,width,color,box-shadow] duration-300 ease-premium motion-reduce:transition-none ${
+      className={`relative inline-flex h-11 items-center justify-center rounded-full transition-[background-color,width,color,box-shadow,scale] duration-200 ease-premium select-none active:scale-94 motion-reduce:transition-none motion-reduce:active:scale-100 ${
         escuchando
           ? "w-20 bg-primario text-sobre-primario shadow-boton"
           : "w-11 bg-primario-suave text-primario hover:bg-primario hover:text-sobre-primario"
       } ${className}`}
     >
-      {escuchando ? <Onda /> : <IconoMicrofono className="size-5" />}
+      {escuchando ? (
+        <span
+          aria-hidden="true"
+          className="halo-dictado pointer-events-none absolute inset-0 rounded-full bg-primario"
+        />
+      ) : null}
+      <span key={escuchando ? "onda" : "micro"} className="cambiar relative flex">
+        {escuchando ? <Onda /> : <IconoMicrofono className="size-5" />}
+      </span>
     </button>
   );
 }
 
-// Barras que suben y bajan mientras escucha (decorativo).
+// Barras que suben y bajan mientras escucha (decorativo). Duraciones distintas por barra:
+// no se sincronizan y se ve como voz, no como un ecualizador.
+const BARRAS = [
+  { retraso: 0, duracion: 900 },
+  { retraso: 180, duracion: 760 },
+  { retraso: 60, duracion: 1040 },
+  { retraso: 260, duracion: 820 },
+  { retraso: 120, duracion: 960 },
+];
+
 function Onda() {
   return (
     <span aria-hidden="true" className="flex h-5 items-center gap-[3px]">
-      {[0, 150, 300, 450, 600].map((retraso) => (
+      {BARRAS.map(({ retraso, duracion }) => (
         <span
           key={retraso}
           className="onda-barra h-full w-[3px] rounded-full bg-sobre-primario"
-          style={{ animationDelay: `${retraso}ms` }}
+          style={{ animationDelay: `${retraso}ms`, animationDuration: `${duracion}ms` }}
         />
       ))}
     </span>

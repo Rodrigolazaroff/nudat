@@ -4,7 +4,14 @@ import { useMemo, useRef, useState, type CSSProperties } from "react";
 import type { TipoComida } from "@/lib/database.types";
 import { TIPOS_COMIDA, etiquetaTipo } from "@/lib/comidas";
 import { COMIDAS_PRINCIPALES, esComidaPrincipal } from "@/lib/resumen";
-import { IconoCerrar, IconoDerecha, IconoIzquierda, IconoLuna } from "@/components/comidas/iconos";
+import {
+  IconoCerrar,
+  IconoDerecha,
+  IconoIzquierda,
+  IconoLuna,
+  IconoPlato,
+  IconoVaso,
+} from "@/components/comidas/iconos";
 import { conteoDeDia, fechaCorta, fechaLarga, madrugadaDel } from "./formato";
 import { Miniatura } from "./miniatura";
 
@@ -202,7 +209,7 @@ export function GrillaSemana({
             mover(-1);
           }
         }}
-        className="m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-2xl overflow-hidden rounded-caja bg-superficie p-0 text-tinta shadow-flotante ring-1 ring-tinta/5 backdrop:bg-tinta/50 backdrop:backdrop-blur-sm motion-safe:animate-[entrar_450ms_var(--curva)_both] print:hidden"
+        className="m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-2xl overflow-hidden rounded-caja bg-superficie p-0 text-tinta shadow-flotante ring-1 ring-tinta/5 backdrop:bg-tinta/50 backdrop:backdrop-blur-sm modal print:hidden"
       >
         {comida && actual !== null ? (
           <div className="flex max-h-[calc(100dvh-2rem)] flex-col">
@@ -283,7 +290,7 @@ function TarjetaComida({ comida: c, onAbrir }: { comida: ComidaGrilla; onAbrir: 
     <button
       type="button"
       onClick={() => onAbrir(c.id)}
-      className="foco flex w-full flex-col gap-1.5 rounded-2xl bg-superficie p-1.5 text-left ring-1 ring-borde transition-[box-shadow,transform] duration-300 ease-premium hover:shadow-suave hover:ring-primario/30 active:scale-[0.985] motion-reduce:transition-none motion-reduce:active:scale-100"
+      className="foco flex w-full flex-col gap-1.5 rounded-2xl bg-superficie p-1.5 text-left ring-1 ring-borde transition-[box-shadow,scale] duration-150 ease-premium hover:shadow-suave hover:ring-primario/30 active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100"
     >
       <span className="sr-only">{etiquetaTipo(c.tipo)}, </span>
       <Miniatura url={c.fotoUrl} error={c.fotoError} className="aspect-[4/3] w-full rounded-xl" />
@@ -302,10 +309,14 @@ function FilaComida({ comida: c, onAbrir }: { comida: ComidaGrilla; onAbrir: (id
     <button
       type="button"
       onClick={() => onAbrir(c.id)}
-      className={`flex min-h-14 w-full items-start gap-3 rounded-[calc(var(--radio-nucleo)-0.375rem)] px-2.5 py-2.5 text-left transition-[background-color,transform] duration-300 ease-premium hover:bg-hundido/60 active:scale-[0.985] motion-reduce:transition-none motion-reduce:active:scale-100 ${focoInterno}`}
+      className={`flex min-h-14 w-full items-start gap-3 rounded-[calc(var(--radio-nucleo)-0.375rem)] px-2.5 py-2.5 text-left transition-[background-color,scale] duration-150 ease-premium select-none hover:bg-hundido/60 active:scale-[0.98] active:bg-hundido/60 motion-reduce:transition-none motion-reduce:active:scale-100 ${focoInterno}`}
     >
-      {/* Sin foto no se reserva el recuadro: la fila arranca con el texto. */}
-      <Miniatura url={c.fotoUrl} error={c.fotoError} className="size-16 rounded-xl" />
+      {/* Sin foto, el mismo ícono de tipo que en Hoy: plato verde o vaso naranja. */}
+      {c.fotoUrl || c.fotoError ? (
+        <Miniatura url={c.fotoUrl} error={c.fotoError} className="size-16 rounded-xl" />
+      ) : (
+        <IconoTipo tipo={c.tipo} />
+      )}
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline justify-between gap-2">
           <span className="font-semibold tracking-tight">{etiquetaTipo(c.tipo)}</span>
@@ -318,6 +329,20 @@ function FilaComida({ comida: c, onAbrir }: { comida: ComidaGrilla; onAbrir: (id
         ) : null}
       </span>
     </button>
+  );
+}
+
+function IconoTipo({ tipo }: { tipo: TipoComida }) {
+  const esBebida = tipo === "bebida";
+  return (
+    <span
+      aria-hidden="true"
+      className={`flex size-16 shrink-0 items-center justify-center rounded-xl ${
+        esBebida ? "bg-acento-suave text-acento-tinta" : "bg-primario-suave text-primario"
+      }`}
+    >
+      {esBebida ? <IconoVaso className="size-7" /> : <IconoPlato className="size-7" />}
+    </span>
   );
 }
 
@@ -352,17 +377,28 @@ function CeldaVacia({ marcar }: { marcar: boolean }) {
   );
 }
 
+// La foto aparece con un fundido cuando termina de bajar (no a pedazos sobre el gris).
 function FotoGrande({ url, alt }: { url: string; alt: string }) {
   const [fallo, setFallo] = useState(false);
+  const [cargada, setCargada] = useState(false);
   if (fallo) return <SinFoto texto="No se pudo cargar la foto. Recargá la página para verla." />;
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={url}
-      alt={alt}
-      onError={() => setFallo(true)}
-      className="max-h-[60dvh] w-full rounded-2xl bg-hundido object-contain"
-    />
+    <div className="rounded-2xl bg-hundido">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        ref={(el) => {
+          // Ya estaba en caché: onLoad puede haber pasado antes de engancharse.
+          if (el?.complete && el.naturalWidth > 0) setCargada(true);
+        }}
+        src={url}
+        alt={alt}
+        onLoad={() => setCargada(true)}
+        onError={() => setFallo(true)}
+        className={`max-h-[60dvh] w-full rounded-2xl object-contain transition-opacity duration-200 ease-premium motion-reduce:transition-none ${
+          cargada ? "opacity-100" : "opacity-0"
+        }`}
+      />
+    </div>
   );
 }
 

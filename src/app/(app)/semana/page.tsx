@@ -148,7 +148,7 @@ export default async function PaginaSemana({ searchParams }: Props) {
             <Link
               href="/semana"
               scroll={false}
-              className="foco -ml-3 inline-flex h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-primario transition-colors duration-300 ease-premium hover:bg-primario-suave"
+              className="foco -ml-3 inline-flex h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-primario transition-[background-color,scale] duration-150 ease-premium select-none hover:bg-primario-suave active:scale-95 active:bg-primario-suave motion-reduce:transition-none motion-reduce:active:scale-100"
             >
               <IconoVolver className="size-4" />
               Ir a los últimos 7 días
