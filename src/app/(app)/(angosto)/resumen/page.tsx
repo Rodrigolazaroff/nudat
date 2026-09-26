@@ -6,7 +6,6 @@ import { createClient } from "@/lib/supabase/server";
 import { esBebida, etiquetaTipo, horaActual, hoyISO } from "@/lib/comidas";
 import {
   COMIDAS_PRINCIPALES,
-  HORA_CORTE_DIA,
   calcularResumen,
   diaAlimentario,
   registrosPorDia,
@@ -146,11 +145,6 @@ export default async function PaginaResumen({ searchParams }: Props) {
               <Dato
                 titulo="Comidas por día"
                 valor={promedioComidas === null ? "Sin datos" : formatearDecimal(promedioComidas)}
-                detalle={
-                  promedioComidas === null
-                    ? "Solo cargaste bebidas"
-                    : `Promedio de ${plural(diasConComida.length, "día", "días")}, sin bebidas`
-                }
               />
               <Dato
                 titulo="Bebidas"
@@ -184,15 +178,10 @@ export default async function PaginaResumen({ searchParams }: Props) {
           <Seccion id="titulo-principales" titulo="Comidas principales">
             {diasEvaluados === 0 ? (
               <p className="text-sm text-tinta-suave text-pretty">
-                Todavía no hay días terminados para mirar. Hoy entra cuando termina.
+                Todavía no hay días terminados.
               </p>
             ) : (
               <div className="flex flex-col gap-2">
-                <p className="text-sm text-tinta-suave text-pretty">
-                  {diasEvaluados === 1
-                    ? "Si aparece cada una en el día terminado con algo cargado."
-                    : `En cuántos de los ${plural(diasEvaluados, "día terminado", "días terminados")} con algo cargado aparece cada una.`}
-                </p>
                 <dl className="flex flex-col divide-y divide-borde">
                   {COMIDAS_PRINCIPALES.map((t) => {
                     const con = diasEvaluados - resumen.salteadas.porTipo[t];
@@ -209,11 +198,6 @@ export default async function PaginaResumen({ searchParams }: Props) {
               </div>
             )}
           </Seccion>
-
-          <p className="text-xs text-tinta-suave text-pretty">
-            Lo que se come antes de las {String(HORA_CORTE_DIA).padStart(2, "0")}:00 cuenta para el
-            día anterior. Los días sin nada cargado no entran en las comidas principales.
-          </p>
         </>
       )}
     </div>

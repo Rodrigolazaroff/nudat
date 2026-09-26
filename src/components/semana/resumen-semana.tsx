@@ -2,13 +2,12 @@ import type { ReactNode } from "react";
 import { etiquetaTipo } from "@/lib/comidas";
 import {
   COMIDAS_PRINCIPALES,
-  HORA_CORTE_DIA,
   formatearDuracion,
   formatearMinutos,
   type Estadistica,
   type Resumen,
 } from "@/lib/resumen";
-import { fechaCorta, formatearDecimal, plural } from "./formato";
+import { formatearDecimal, plural } from "./formato";
 import { ui } from "./ui";
 import { Voz } from "./voz";
 
@@ -49,7 +48,7 @@ export function ResumenSemana({ resumen: r }: { resumen: Resumen }) {
           valor={`${r.diasConRegistro} de ${r.diasPeriodo}`}
           detalle={
             r.promedioComidasPorDia !== null
-              ? `${formatearDecimal(r.promedioComidasPorDia)} comidas por día, sin contar bebidas`
+              ? `${formatearDecimal(r.promedioComidasPorDia)} comidas por día`
               : null
           }
         />
@@ -61,7 +60,7 @@ export function ResumenSemana({ resumen: r }: { resumen: Resumen }) {
               ? ayuno.cantidad === 1
                 ? "1 noche"
                 : `${ayuno.cantidad} noches · de ${formatearDuracion(ayuno.minimo)} a ${formatearDuracion(ayuno.maximo)}`
-              : "Hacen falta dos días seguidos con registros"
+              : null
           }
         />
         <div className={tarjeta}>
@@ -156,9 +155,6 @@ export function ResumenSemana({ resumen: r }: { resumen: Resumen }) {
                     );
                   })}
                 </ul>
-                <p className="mt-2 text-xs text-tinta-suave">
-                  Sobre {plural(r.salteadas.diasEvaluados, "día", "días")} con registros.
-                </p>
               </>
             )}
           </div>
@@ -180,23 +176,6 @@ export function ResumenSemana({ resumen: r }: { resumen: Resumen }) {
           </div>
         </div>
       </div>
-
-      <p className="text-xs text-tinta-suave text-pretty">
-        Lo que se come antes de las {String(HORA_CORTE_DIA).padStart(2, "0")}:00 cuenta para el día
-        anterior. Las bebidas no cuentan para los horarios de comida (primera, última y ayuno).
-        {r.diaEnCurso ? (
-          <>
-            {" "}
-            <Voz
-              pantalla={`Hoy (${fechaCorta(r.diaEnCurso)}) todavía está en curso: no se cuenta en comidas sin registro ni en la última comida.`}
-              impresion={`El día en curso al imprimir (${fechaCorta(r.diaEnCurso)}) no se cuenta en comidas sin registro ni en la última comida.`}
-            />
-          </>
-        ) : null}
-        {r.diasSinRegistro.length > 0
-          ? " Los días sin ningún registro no se cuentan como comidas salteadas."
-          : null}
-      </p>
     </section>
   );
 }

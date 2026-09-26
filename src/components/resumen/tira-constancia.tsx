@@ -105,12 +105,8 @@ export function TiraConstancia({
       </ol>
 
       <div className="flex flex-col gap-2 text-xs text-tinta-suave">
-        <p id="leyenda-constancia" className="text-pretty">
-          Cada cuadro es un día: arriba la fecha y, más grande, cuántas comidas y bebidas
-          cargaste. Tocalo para ver ese día.
-        </p>
         <ul
-          aria-labelledby="leyenda-constancia"
+          aria-label="Leyenda"
           className="flex flex-wrap items-center gap-x-4 gap-y-2"
         >
           {NIVELES.map((n) => (
@@ -131,7 +127,7 @@ export function TiraConstancia({
           {hayMadrugada ? (
             <li className="flex items-center gap-1.5">
               <IconoLuna className="size-4 text-tinta" />
-              Incluye algo de madrugada (en Hoy figura en el día siguiente)
+              Madrugada
             </li>
           ) : null}
         </ul>
