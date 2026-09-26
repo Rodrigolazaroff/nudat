@@ -27,9 +27,9 @@ export function HojaDias({ dias, diaEnCurso }: { dias: DiaGrilla[]; diaEnCurso: 
             className={`mt-4 first:mt-0 ${dia.comidas.length <= REGISTROS_DIA_ENTERO ? "break-inside-avoid" : ""}`}
           >
             <div className="flex items-baseline justify-between gap-4 border-b border-tinta pb-1 break-after-avoid">
-              <h3 className="font-semibold first-letter:uppercase">
+              <h3 className="font-display text-base font-bold tracking-tight first-letter:uppercase">
                 {fechaConAnio(dia.fecha)}
-                {enCurso ? <span className="font-normal"> (en curso al imprimir)</span> : null}
+                {enCurso ? <span className="font-sans text-sm font-normal tracking-normal"> (en curso al imprimir)</span> : null}
               </h3>
               <span className="shrink-0 text-sm tabular-nums">{conteoDeDia(dia.comidas)}</span>
             </div>

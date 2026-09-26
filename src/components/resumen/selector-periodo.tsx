@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { IndicadorLink } from "@/components/semana/indicador-link";
-import { ui } from "@/components/semana/ui";
 
 export const PERIODOS = [7, 30] as const;
 export type Periodo = (typeof PERIODOS)[number];
@@ -13,12 +12,12 @@ export function periodoDeParam(valor: string | string[] | undefined): Periodo {
 
 const hrefPeriodo = (p: Periodo) => (p === 7 ? "/resumen" : `/resumen?dias=${p}`);
 
-// Control segmentado hecho con links: cada período es una URL (se puede compartir,
-// funciona sin JS y el botón Atrás vuelve al anterior).
+// Dos chips hechos con links: cada período es una URL (se puede compartir, funciona
+// sin JS y el botón Atrás vuelve al anterior).
 export function SelectorPeriodo({ actual }: { actual: Periodo }) {
   return (
     <nav aria-label="Período del resumen">
-      <ul className="grid grid-cols-2 gap-1 rounded-2xl border border-borde bg-superficie p-1">
+      <ul className="grid grid-cols-2 gap-2">
         {PERIODOS.map((p) => {
           const activo = p === actual;
           return (
@@ -27,13 +26,11 @@ export function SelectorPeriodo({ actual }: { actual: Periodo }) {
                 href={hrefPeriodo(p)}
                 scroll={false}
                 aria-current={activo ? "page" : undefined}
-                className={`flex h-11 items-center justify-center gap-2 rounded-xl text-sm font-medium transition-colors ${ui.foco} ${
-                  activo
-                    ? "bg-primario text-sobre-primario"
-                    : "text-tinta-suave hover:bg-fondo hover:text-tinta"
+                className={`chip foco w-full justify-center gap-2 px-3 ${
+                  activo ? "chip-activo" : "hover:shadow-[0_0_0_1px_rgb(47_107_79_/_0.3)]"
                 }`}
               >
-                <span aria-hidden="true" className="size-3" />
+                <span aria-hidden="true" className="size-3 shrink-0" />
                 Últimos {p} días
                 <IndicadorLink />
               </Link>

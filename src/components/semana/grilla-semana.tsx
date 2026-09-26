@@ -1,12 +1,12 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, type CSSProperties } from "react";
 import type { TipoComida } from "@/lib/database.types";
 import { TIPOS_COMIDA, etiquetaTipo } from "@/lib/comidas";
 import { COMIDAS_PRINCIPALES, esComidaPrincipal } from "@/lib/resumen";
+import { IconoCerrar, IconoDerecha, IconoIzquierda, IconoLuna } from "@/components/comidas/iconos";
 import { conteoDeDia, fechaCorta, fechaLarga, madrugadaDel } from "./formato";
 import { Miniatura } from "./miniatura";
-import { ui } from "./ui";
 
 export type ComidaGrilla = {
   id: string;
@@ -26,6 +26,13 @@ export type ComidaGrilla = {
 
 /** Un día alimentario, con sus comidas ordenadas por horario. */
 export type DiaGrilla = { fecha: string; comidas: ComidaGrilla[] };
+
+// La grilla entra después del resumen (escalones 0-4 en page.tsx y resumen-semana.tsx).
+const escalon = (i: number) => ({ "--i": Math.min(i + 5, 10) }) as CSSProperties;
+
+// Foco para filas dentro de un bloque: el anillo va adentro para que no lo recorte el borde.
+const focoInterno =
+  "outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primario";
 
 export function GrillaSemana({
   dias,
@@ -53,80 +60,84 @@ export function GrillaSemana({
 
   return (
     <>
-      {/* Desktop: tabla días × tipos de comida. Al imprimir se usa HojaDias (lista por día). */}
-      <div className="hidden overflow-x-auto rounded-2xl border border-borde bg-superficie lg:block print:hidden">
-        <table className="w-full table-fixed border-collapse text-sm">
-          <caption className="sr-only">
-            Comidas registradas por día y tipo. Las celdas vacías son comidas sin registro.
-          </caption>
-          <colgroup>
-            <col className="w-28" />
-            {TIPOS_COMIDA.map((t) => (
-              <col key={t.valor} />
-            ))}
-          </colgroup>
-          <thead>
-            <tr className="border-b border-borde bg-fondo">
-              <th scope="col" className="px-3 py-2.5 text-left font-medium text-tinta-suave">
-                Día
-              </th>
-              {TIPOS_COMIDA.map((t) => (
-                <th key={t.valor} scope="col" className="px-2 py-2.5 text-left font-medium text-tinta-suave">
-                  {t.etiqueta}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {dias.map((dia) => {
-              const enCurso = dia.fecha === diaEnCurso;
-              return (
-                <tr key={dia.fecha} className="border-b border-borde align-top last:border-b-0">
-                  <th scope="row" className="px-3 py-3 text-left align-top font-normal">
-                    <span className="block font-medium capitalize">{fechaCorta(dia.fecha)}</span>
-                    <span className="block text-xs text-tinta-suave tabular-nums">{conteoDeDia(dia.comidas)}</span>
-                    {enCurso ? (
-                      <span className="mt-1 inline-block rounded-full bg-primario-suave px-2 py-0.5 text-xs font-medium text-primario">
-                        Hoy
-                      </span>
-                    ) : null}
+      {/* Compu: tabla días × tipos de comida. Al imprimir se usa HojaDias (lista por día). */}
+      <div className="bisel entrar hidden lg:block print:hidden" style={escalon(0)}>
+        <div className="bisel-nucleo overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full table-fixed border-collapse text-sm">
+              <caption className="sr-only">
+                Comidas registradas por día y tipo. Las celdas vacías son comidas sin registro.
+              </caption>
+              <colgroup>
+                <col className="w-32" />
+                {TIPOS_COMIDA.map((t) => (
+                  <col key={t.valor} />
+                ))}
+              </colgroup>
+              <thead>
+                <tr className="border-b border-borde bg-hundido/50">
+                  <th scope="col" className="px-4 py-3 text-left font-semibold text-tinta-suave">
+                    Día
                   </th>
-                  {dia.comidas.length === 0 ? (
-                    <td colSpan={TIPOS_COMIDA.length} className="p-2">
-                      <div className="flex min-h-20 items-center justify-center rounded-xl border border-dashed border-borde text-tinta-suave">
-                        {enCurso ? "Todavía no cargaste nada hoy." : "No cargaste nada este día."}
-                      </div>
-                    </td>
-                  ) : (
-                    TIPOS_COMIDA.map((t) => {
-                      const deTipo = dia.comidas.filter((c) => c.tipo === t.valor);
-                      return (
-                        <td key={t.valor} className="p-2 align-top">
-                          {deTipo.length > 0 ? (
-                            <ul className="flex flex-col gap-2">
-                              {deTipo.map((c) => (
-                                <li key={c.id}>
-                                  <TarjetaComida comida={c} onAbrir={abrir} />
-                                </li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <CeldaVacia marcar={esComidaPrincipal(t.valor) && !enCurso} />
-                          )}
-                        </td>
-                      );
-                    })
-                  )}
+                  {TIPOS_COMIDA.map((t) => (
+                    <th key={t.valor} scope="col" className="px-2 py-3 text-left font-semibold text-tinta-suave">
+                      {t.etiqueta}
+                    </th>
+                  ))}
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
+              </thead>
+              <tbody>
+                {dias.map((dia) => {
+                  const enCurso = dia.fecha === diaEnCurso;
+                  return (
+                    <tr key={dia.fecha} className="border-b border-borde align-top last:border-b-0">
+                      <th scope="row" className="px-4 py-3.5 text-left align-top font-normal">
+                        <span className="block font-display text-base font-bold tracking-tight capitalize">
+                          {fechaCorta(dia.fecha)}
+                        </span>
+                        <span className="mt-0.5 block text-xs text-tinta-suave tabular-nums">
+                          {conteoDeDia(dia.comidas)}
+                        </span>
+                        {enCurso ? <span className="pastilla mt-2">Hoy</span> : null}
+                      </th>
+                      {dia.comidas.length === 0 ? (
+                        <td colSpan={TIPOS_COMIDA.length} className="p-2">
+                          <div className="flex min-h-20 items-center justify-center rounded-2xl bg-hundido/60 text-tinta-suave">
+                            {enCurso ? "Todavía no cargaste nada hoy." : "No cargaste nada este día."}
+                          </div>
+                        </td>
+                      ) : (
+                        TIPOS_COMIDA.map((t) => {
+                          const deTipo = dia.comidas.filter((c) => c.tipo === t.valor);
+                          return (
+                            <td key={t.valor} className="p-2 align-top">
+                              {deTipo.length > 0 ? (
+                                <ul className="flex flex-col gap-2">
+                                  {deTipo.map((c) => (
+                                    <li key={c.id}>
+                                      <TarjetaComida comida={c} onAbrir={abrir} />
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <CeldaVacia marcar={esComidaPrincipal(t.valor) && !enCurso} />
+                              )}
+                            </td>
+                          );
+                        })
+                      )}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
-      {/* Celular y tablet: lista por día. */}
+      {/* Celular y tablet: un bloque por día. */}
       <div className="flex flex-col gap-3 lg:hidden print:hidden">
-        {dias.map((dia) => {
+        {dias.map((dia, i) => {
           const enCurso = dia.fecha === diaEnCurso;
           const tipos = new Set(dia.comidas.map((c) => c.tipo));
           const faltan =
@@ -134,33 +145,37 @@ export function GrillaSemana({
               ? COMIDAS_PRINCIPALES.filter((t) => !tipos.has(t))
               : [];
           return (
-            <section key={dia.fecha} className="overflow-hidden rounded-2xl border border-borde bg-superficie">
-              <header className="flex items-baseline justify-between gap-3 border-b border-borde px-4 py-3">
-                <h3 className="font-medium first-letter:uppercase">
-                  {fechaLarga(dia.fecha)}
-                  {enCurso ? <span className="font-normal text-tinta-suave"> · hoy</span> : null}
-                </h3>
-                <span className="shrink-0 text-sm text-tinta-suave tabular-nums">{conteoDeDia(dia.comidas)}</span>
-              </header>
-              {dia.comidas.length === 0 ? (
-                <p className="px-4 py-4 text-sm text-tinta-suave">
-                  {enCurso ? "Todavía no cargaste nada hoy." : "No cargaste nada este día."}
-                </p>
-              ) : (
-                <ul className="divide-y divide-borde">
-                  {dia.comidas.map((c) => (
-                    <li key={c.id}>
-                      <FilaComida comida={c} onAbrir={abrir} />
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {faltan.length > 0 ? (
-                <p className="flex items-center gap-2 border-t border-borde px-4 py-3 text-sm text-tinta-suave">
-                  <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-acento" />
-                  Sin registro: {faltan.map((t) => etiquetaTipo(t).toLowerCase()).join(", ")}
-                </p>
-              ) : null}
+            <section key={dia.fecha} className="bisel entrar" style={escalon(i)}>
+              <div className="bisel-nucleo">
+                <header className="px-4 pt-4 pb-2">
+                  <div className="flex items-center gap-2">
+                    <h3 className="min-w-0 font-display text-lg leading-tight font-bold tracking-tight first-letter:uppercase">
+                      {fechaLarga(dia.fecha)}
+                    </h3>
+                    {enCurso ? <span className="pastilla shrink-0">Hoy</span> : null}
+                  </div>
+                  <p className="mt-0.5 text-sm text-tinta-suave tabular-nums">{conteoDeDia(dia.comidas)}</p>
+                </header>
+                {dia.comidas.length === 0 ? (
+                  <p className="px-4 pb-4 text-sm text-tinta-suave">
+                    {enCurso ? "Todavía no cargaste nada hoy." : "No cargaste nada este día."}
+                  </p>
+                ) : (
+                  <ul className="flex flex-col px-1.5 pb-1.5">
+                    {dia.comidas.map((c) => (
+                      <li key={c.id}>
+                        <FilaComida comida={c} onAbrir={abrir} />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {faltan.length > 0 ? (
+                  <p className="mx-4 flex items-center gap-2 border-t border-borde py-3 text-sm text-tinta-suave">
+                    <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-acento" />
+                    Sin registro: {faltan.map((t) => etiquetaTipo(t).toLowerCase()).join(", ")}
+                  </p>
+                ) : null}
+              </div>
             </section>
           );
         })}
@@ -187,42 +202,44 @@ export function GrillaSemana({
             mover(-1);
           }
         }}
-        className="m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-2xl overflow-hidden rounded-2xl border border-borde bg-superficie p-0 text-tinta shadow-xl backdrop:bg-tinta/60 print:hidden"
+        className="m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-2xl overflow-hidden rounded-caja bg-superficie p-0 text-tinta shadow-flotante ring-1 ring-tinta/5 backdrop:bg-tinta/50 backdrop:backdrop-blur-sm motion-safe:animate-[entrar_450ms_var(--curva)_both] print:hidden"
       >
         {comida && actual !== null ? (
           <div className="flex max-h-[calc(100dvh-2rem)] flex-col">
-            <header className="flex items-start justify-between gap-3 border-b border-borde px-4 py-3">
+            <header className="flex items-start justify-between gap-3 px-5 pt-5 pb-4">
               <div className="min-w-0">
-                <h2 id="detalle-comida-titulo" className="font-semibold">
+                <h2 id="detalle-comida-titulo" className="font-display text-xl font-bold tracking-tight">
                   {etiquetaTipo(comida.tipo)}
                 </h2>
-                <p className="text-sm text-tinta-suave tabular-nums first-letter:uppercase">
+                <p className="mt-0.5 text-sm font-medium text-tinta-suave tabular-nums first-letter:uppercase">
                   {fechaLarga(comida.fecha)} · {comida.hora}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => dialogo.current?.close()}
-                className={`grid size-10 shrink-0 place-items-center rounded-xl text-tinta-suave hover:bg-fondo hover:text-tinta ${ui.foco}`}
+                aria-label="Cerrar"
+                className="boton-circulo foco"
               >
-                <span className="sr-only">Cerrar</span>
-                <svg aria-hidden="true" viewBox="0 0 20 20" fill="currentColor" className="size-5">
-                  <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
-                </svg>
+                <IconoCerrar className="size-5" />
               </button>
             </header>
 
             <div className="min-h-0 flex-1 overflow-y-auto">
-              {comida.fotoUrl ? (
-                <FotoGrande
-                  key={comida.fotoUrl}
-                  url={comida.fotoUrl}
-                  alt={`Foto: ${etiquetaTipo(comida.tipo).toLowerCase()} del ${fechaLarga(comida.fecha)}`}
-                />
-              ) : comida.fotoError ? (
-                <SinFoto texto="No se pudo cargar la foto. Recargá la página para verla." />
+              {comida.fotoUrl || comida.fotoError ? (
+                <div className="px-3">
+                  {comida.fotoUrl ? (
+                    <FotoGrande
+                      key={comida.fotoUrl}
+                      url={comida.fotoUrl}
+                      alt={`Foto: ${etiquetaTipo(comida.tipo).toLowerCase()} del ${fechaLarga(comida.fecha)}`}
+                    />
+                  ) : (
+                    <SinFoto texto="No se pudo cargar la foto. Recargá la página para verla." />
+                  )}
+                </div>
               ) : null}
-              <p className="px-4 py-4 whitespace-pre-wrap text-pretty">
+              <p className="px-5 py-4 whitespace-pre-wrap text-pretty">
                 {comida.descripcion.trim() || (
                   <span className="text-tinta-suave">Sin descripción.</span>
                 )}
@@ -230,14 +247,15 @@ export function GrillaSemana({
             </div>
 
             {todas.length > 1 ? (
-              <footer className="flex items-center justify-between gap-2 border-t border-borde px-4 py-3">
+              <footer className="flex items-center justify-between gap-2 border-t border-borde px-2 py-2">
                 <button
                   type="button"
                   onClick={() => mover(-1)}
                   disabled={actual === 0}
-                  className={ui.botonChico}
+                  className="boton boton-fantasma foco min-h-11 gap-1 px-3 text-sm disabled:opacity-40"
                 >
-                  <span aria-hidden="true">‹</span> Anterior
+                  <IconoIzquierda className="size-4" />
+                  Anterior
                 </button>
                 <span className="text-sm text-tinta-suave tabular-nums">
                   {actual + 1} de {todas.length}
@@ -246,9 +264,10 @@ export function GrillaSemana({
                   type="button"
                   onClick={() => mover(1)}
                   disabled={actual === todas.length - 1}
-                  className={ui.botonChico}
+                  className="boton boton-fantasma foco min-h-11 gap-1 px-3 text-sm disabled:opacity-40"
                 >
-                  Siguiente <span aria-hidden="true">›</span>
+                  Siguiente
+                  <IconoDerecha className="size-4" />
                 </button>
               </footer>
             ) : null}
@@ -264,15 +283,15 @@ function TarjetaComida({ comida: c, onAbrir }: { comida: ComidaGrilla; onAbrir: 
     <button
       type="button"
       onClick={() => onAbrir(c.id)}
-      className={`flex w-full flex-col gap-1.5 rounded-xl border border-borde bg-superficie p-1.5 text-left transition-colors hover:border-primario ${ui.foco}`}
+      className="foco flex w-full flex-col gap-1.5 rounded-2xl bg-superficie p-1.5 text-left ring-1 ring-borde transition-[box-shadow,transform] duration-300 ease-premium hover:shadow-suave hover:ring-primario/30 active:scale-[0.985] motion-reduce:transition-none motion-reduce:active:scale-100"
     >
       <span className="sr-only">{etiquetaTipo(c.tipo)}, </span>
-      <Miniatura url={c.fotoUrl} error={c.fotoError} className="aspect-[4/3] w-full rounded-lg" />
-      <span className="px-1 text-xs font-medium tabular-nums">
+      <Miniatura url={c.fotoUrl} error={c.fotoError} className="aspect-[4/3] w-full rounded-xl" />
+      <span className="px-1 font-display text-sm font-bold tracking-tight tabular-nums">
         <Hora comida={c} />
       </span>
       {c.descripcion.trim() ? (
-        <span className="line-clamp-3 px-1 pb-0.5 text-xs text-tinta-suave">{c.descripcion}</span>
+        <span className="line-clamp-3 px-1 pb-0.5 text-xs leading-snug text-tinta-suave">{c.descripcion}</span>
       ) : null}
     </button>
   );
@@ -283,19 +302,19 @@ function FilaComida({ comida: c, onAbrir }: { comida: ComidaGrilla; onAbrir: (id
     <button
       type="button"
       onClick={() => onAbrir(c.id)}
-      className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-fondo focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primario"
+      className={`flex min-h-14 w-full items-start gap-3 rounded-[calc(var(--radio-nucleo)-0.375rem)] px-2.5 py-2.5 text-left transition-[background-color,transform] duration-300 ease-premium hover:bg-hundido/60 active:scale-[0.985] motion-reduce:transition-none motion-reduce:active:scale-100 ${focoInterno}`}
     >
       {/* Sin foto no se reserva el recuadro: la fila arranca con el texto. */}
-      <Miniatura url={c.fotoUrl} error={c.fotoError} className="size-16 rounded-lg" />
+      <Miniatura url={c.fotoUrl} error={c.fotoError} className="size-16 rounded-xl" />
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline justify-between gap-2">
-          <span className="font-medium">{etiquetaTipo(c.tipo)}</span>
-          <span className="shrink-0 text-right text-sm text-tinta-suave tabular-nums">
+          <span className="font-semibold tracking-tight">{etiquetaTipo(c.tipo)}</span>
+          <span className="shrink-0 text-right font-display font-bold tracking-tight tabular-nums">
             <Hora comida={c} />
           </span>
         </span>
         {c.descripcion.trim() ? (
-          <span className="mt-0.5 line-clamp-2 text-sm text-tinta-suave">{c.descripcion}</span>
+          <span className="mt-0.5 line-clamp-2 text-sm leading-snug text-tinta-suave">{c.descripcion}</span>
         ) : null}
       </span>
     </button>
@@ -308,7 +327,10 @@ function Hora({ comida }: { comida: ComidaGrilla }) {
   return (
     <>
       {comida.hora}
-      <span className="block text-xs font-normal text-tinta-suave">{madrugadaDel(comida.fecha)}</span>
+      <span className="mt-0.5 block font-sans text-xs font-medium tracking-normal text-tinta-suave">
+        <IconoLuna className="mr-1 inline size-3.5 align-[-2px]" />
+        {madrugadaDel(comida.fecha)}
+      </span>
     </>
   );
 }
@@ -316,15 +338,15 @@ function Hora({ comida }: { comida: ComidaGrilla }) {
 function CeldaVacia({ marcar }: { marcar: boolean }) {
   if (marcar) {
     return (
-      <div className="flex min-h-16 items-center justify-center gap-1.5 rounded-xl border border-dashed border-borde px-1 text-center text-xs text-tinta-suave">
+      <div className="flex min-h-16 items-center justify-center gap-1.5 rounded-2xl bg-hundido/60 px-1 text-center text-xs font-medium text-tinta-suave">
         <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-acento" />
         Sin registro
       </div>
     );
   }
   return (
-    <div className="flex min-h-16 items-center justify-center text-tinta-suave">
-      <span aria-hidden="true">–</span>
+    <div className="flex min-h-16 items-center justify-center">
+      <span aria-hidden="true" className="h-px w-3 bg-borde" />
       <span className="sr-only">Sin registro</span>
     </div>
   );
@@ -339,14 +361,14 @@ function FotoGrande({ url, alt }: { url: string; alt: string }) {
       src={url}
       alt={alt}
       onError={() => setFallo(true)}
-      className="max-h-[60dvh] w-full bg-fondo object-contain"
+      className="max-h-[60dvh] w-full rounded-2xl bg-hundido object-contain"
     />
   );
 }
 
 function SinFoto({ texto }: { texto: string }) {
   return (
-    <div className="grid h-40 place-items-center bg-fondo px-4 text-center text-sm text-tinta-suave">
+    <div className="grid h-40 place-items-center rounded-2xl bg-hundido px-4 text-center text-sm text-tinta-suave">
       {texto}
     </div>
   );

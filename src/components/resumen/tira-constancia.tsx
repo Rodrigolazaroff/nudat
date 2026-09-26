@@ -7,10 +7,10 @@ import { IconoLuna } from "@/components/comidas/iconos";
 // número (la vacía, un guion y borde punteado) y el nivel 1 lleva borde propio, así
 // no depende solo del color ni se confunde con el vacío.
 const NIVELES = [
-  { etiqueta: "Nada", clases: "border border-dashed border-tinta-suave/60 bg-superficie text-tinta-suave" },
+  { etiqueta: "Nada", clases: "border border-dashed border-tinta-suave/60 bg-hundido/50 text-tinta-suave" },
   { etiqueta: "1 o 2", clases: "border border-primario/50 bg-primario-suave text-primario" },
-  { etiqueta: "3 o 4", clases: "bg-primario/35 text-tinta" },
-  { etiqueta: "5 o más", clases: "bg-primario text-sobre-primario" },
+  { etiqueta: "3 o 4", clases: "bg-primario/35 text-tinta shadow-suave" },
+  { etiqueta: "5 o más", clases: "bg-primario text-sobre-primario shadow-boton" },
 ] as const;
 
 function nivel(total: number): number {
@@ -68,7 +68,10 @@ export function TiraConstancia({
 
   return (
     <div className="flex flex-col gap-3">
-      <div aria-hidden="true" className="grid grid-cols-7 gap-1 text-center text-xs text-tinta-suave">
+      <div
+        aria-hidden="true"
+        className="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-tinta-suave"
+      >
         {encabezado.map((letra, i) => (
           <span key={i}>{letra}</span>
         ))}
@@ -85,18 +88,18 @@ export function TiraConstancia({
               <Link
                 href={`/?fecha=${d.fecha}`}
                 aria-label={etiqueta}
-                className={`relative flex h-14 flex-col items-center justify-center rounded-xl leading-tight ${clases} focus-visible:outline-2 focus-visible:outline-primario ${
+                className={`relative flex h-15 flex-col items-center justify-center rounded-2xl leading-tight transition-transform duration-300 ease-premium active:scale-[0.94] motion-reduce:transition-none motion-reduce:active:scale-100 ${clases} focus-visible:outline-2 focus-visible:outline-primario ${
                   esHoy
                     ? "ring-2 ring-tinta ring-offset-2 ring-offset-fondo focus-visible:outline-offset-5"
                     : "focus-visible:outline-offset-2"
                 }`}
               >
-                <span className="text-xs tabular-nums">{Number(d.fecha.slice(8))}</span>
-                <span className="text-base font-semibold tabular-nums">
+                <span className="text-xs font-medium tabular-nums">{Number(d.fecha.slice(8))}</span>
+                <span className="font-display text-lg leading-tight font-bold tabular-nums">
                   {d.total === 0 ? "–" : d.total}
                 </span>
                 {deMadrugada > 0 ? (
-                  <IconoLuna className="absolute top-1 right-1 size-3" />
+                  <IconoLuna className="absolute top-1.5 right-1.5 size-3" />
                 ) : null}
               </Link>
             </li>
@@ -104,14 +107,11 @@ export function TiraConstancia({
         })}
       </ol>
 
-      <div className="flex flex-col gap-2 text-xs text-tinta-suave">
-        <ul
-          aria-label="Leyenda"
-          className="flex flex-wrap items-center gap-x-4 gap-y-2"
-        >
+      <div className="flex flex-col gap-2 text-xs font-medium text-tinta-suave">
+        <ul aria-label="Leyenda" className="flex flex-wrap items-center gap-x-4 gap-y-2">
           {NIVELES.map((n) => (
             <li key={n.etiqueta} className="flex items-center gap-1.5">
-              <span aria-hidden="true" className={`size-4 rounded ${n.clases}`} />
+              <span aria-hidden="true" className={`size-4 rounded-md ${n.clases}`} />
               {n.etiqueta}
             </li>
           ))}
@@ -119,7 +119,7 @@ export function TiraConstancia({
             <li className="flex items-center gap-1.5">
               <span
                 aria-hidden="true"
-                className="size-4 rounded ring-2 ring-tinta ring-offset-1 ring-offset-fondo"
+                className="size-4 rounded-md ring-2 ring-tinta ring-offset-1 ring-offset-fondo"
               />
               Hoy
             </li>

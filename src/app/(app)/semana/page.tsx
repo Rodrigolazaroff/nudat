@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { obtenerPerfil } from "@/lib/perfil";
 import { hoyISO } from "@/lib/comidas";
 import { calcularResumen, esFechaValida, sumarDias, ubicarComidas } from "@/lib/resumen";
 import { firmarFotos } from "@/components/comidas/firmar-fotos";
+import { IconoMas, IconoSemana, IconoVolver } from "@/components/comidas/iconos";
 import { BotonImprimir } from "@/components/semana/boton-imprimir";
 import {
   fechaNumerica,
@@ -15,14 +17,16 @@ import {
 } from "@/components/semana/formato";
 import { GrillaSemana, type DiaGrilla } from "@/components/semana/grilla-semana";
 import { HojaDias } from "@/components/semana/hoja-dias";
+import { papel } from "@/components/semana/papel";
 import { ResumenSemana } from "@/components/semana/resumen-semana";
 import { SelectorSemana } from "@/components/semana/selector-semana";
-import { ui } from "@/components/semana/ui";
 import { Voz } from "@/components/semana/voz";
 
 type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
+
+const escalon = (i: number) => ({ "--i": i }) as CSSProperties;
 
 /** Período: 7 días. Por defecto, los últimos 7 terminando hoy; nunca más adelante. */
 function periodo(consulta: Record<string, string | string[] | undefined>) {
@@ -89,11 +93,12 @@ export default async function PaginaSemana({ searchParams }: Props) {
 
   const href = (d: string) => (d === desdeUltimos ? "/semana" : `/semana?desde=${d}`);
   const siguiente = sumarDias(desde, 7);
+  const vacia = resumen.totalRegistros === 0;
 
   return (
     // Al imprimir, la página es una tabla: el encabezado (table-header-group) se repite
     // arriba de cada hoja, así ninguna queda sin nombre ni período.
-    <div className="flex flex-col gap-6 pb-6 print:table print:w-full print:pb-0">
+    <div className="flex flex-col gap-8 pb-6 print:table print:w-full print:pb-0">
       {/* A4 vertical: la hoja impresa es una lista por día, no la grilla de 7 columnas. */}
       <style>{"@media print { @page { size: A4 portrait; margin: 12mm 12mm 14mm; } }"}</style>
 
@@ -102,7 +107,7 @@ export default async function PaginaSemana({ searchParams }: Props) {
           <div className="print:table-cell print:pb-4">
             <div className="flex items-end justify-between gap-4 border-b border-tinta pb-2">
               <div className="min-w-0">
-                <p className="text-lg font-semibold">
+                <p className="font-display text-xl font-bold tracking-tight">
                   Registro alimentario{perfil.nombre ? ` de ${perfil.nombre}` : ""}
                 </p>
                 <p className="text-sm">Del {rangoFechasConAnio(desde, hasta)}</p>
@@ -115,48 +120,75 @@ export default async function PaginaSemana({ searchParams }: Props) {
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 print:hidden">
-        <div className="flex flex-wrap items-end justify-between gap-3">
+      {/* ── Pantalla: título grande + flechas; abajo, período y acción principal ── */}
+      <div className="flex flex-col gap-5 print:hidden">
+        <div className="entrar flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="text-2xl font-semibold tracking-tight">Mi semana</h1>
-            <p className="mt-1 text-tinta-suave">Del {rangoFechas(desde, hasta)}</p>
+            <h1 className="titulo-pantalla text-[clamp(2.5rem,11vw,3.5rem)]">Mi semana</h1>
+            <p className="mt-2 font-medium text-pretty text-tinta-suave">Del {rangoFechas(desde, hasta)}</p>
           </div>
-          <BotonImprimir firmadoEn={firmadoEn} />
+          <SelectorSemana
+            hrefAnterior={href(sumarDias(desde, -7))}
+            hrefSiguiente={
+              desde < desdeUltimos ? href(siguiente < desdeUltimos ? siguiente : desdeUltimos) : null
+            }
+          />
         </div>
 
-        <SelectorSemana
-          desde={desde}
-          hasta={hasta}
-          hrefAnterior={href(sumarDias(desde, -7))}
-          hrefSiguiente={desde < desdeUltimos ? href(siguiente < desdeUltimos ? siguiente : desdeUltimos) : null}
-          hrefUltimos={desde < desdeUltimos ? "/semana" : null}
-        />
+        <div className="entrar flex flex-wrap items-center justify-between gap-3" style={escalon(1)}>
+          {desde < desdeUltimos ? (
+            <Link
+              href="/semana"
+              scroll={false}
+              className="foco -ml-3 inline-flex h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-primario transition-colors duration-300 ease-premium hover:bg-primario-suave"
+            >
+              <IconoVolver className="size-4" />
+              Ir a los últimos 7 días
+            </Link>
+          ) : (
+            <span className="pastilla">Últimos 7 días</span>
+          )}
+          <BotonImprimir firmadoEn={firmadoEn} variante={vacia ? "secundario" : "primario"} />
+        </div>
       </div>
 
       <div className="print:table-row-group">
         <div className="print:table-row">
           <div className="print:table-cell">
-            {resumen.totalRegistros === 0 ? (
-              <div className="flex flex-col items-center rounded-2xl border border-dashed border-borde bg-superficie px-6 py-12 text-center print:border-tinta-suave">
-                <p className="font-medium">
-                  <Voz
-                    pantalla="No cargaste nada en estos días"
-                    impresion="No hay registros en estos días."
-                  />
-                </p>
-                <p className="mt-1 max-w-md text-sm text-tinta-suave text-pretty print:hidden">
-                  Cuando cargues tus comidas y bebidas, acá vas a ver el resumen de la semana y lo vas a
-                  poder imprimir o guardar en PDF para llevárselo a tu nutri.
-                </p>
-                <Link href="/nueva" className={`${ui.botonPrimario} mt-5 print:hidden`}>
-                  Cargar algo
-                </Link>
+            {vacia ? (
+              <div className={`bisel entrar ${papel.bisel}`} style={escalon(2)}>
+                <div
+                  className={`bisel-nucleo flex flex-col items-center px-6 py-10 text-center print:py-6 ${papel.nucleo}`}
+                >
+                  <div className="flex size-18 items-center justify-center rounded-full bg-primario-suave text-primario shadow-[inset_0_0_0_6px_var(--superficie),0_0_0_1px_var(--borde)] print:hidden">
+                    <IconoSemana className="size-8" />
+                  </div>
+                  <h2 className="mt-5 font-display text-xl font-bold tracking-tight text-balance print:mt-0 print:font-sans print:text-base print:font-medium">
+                    <Voz
+                      pantalla="No cargaste nada en estos días"
+                      impresion="No hay registros en estos días."
+                    />
+                  </h2>
+                  <Link
+                    href="/nueva"
+                    className="boton boton-primario foco group mt-6 min-h-13 pr-1.5 pl-5 print:hidden"
+                  >
+                    Cargar algo
+                    <span aria-hidden="true" className="boton-icono">
+                      <IconoMas className="size-5" />
+                    </span>
+                  </Link>
+                </div>
               </div>
             ) : (
-              <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-8 print:gap-6">
                 <ResumenSemana resumen={resumen} />
                 <section aria-labelledby="titulo-grilla" className="flex flex-col gap-3">
-                  <h2 id="titulo-grilla" className="text-lg font-semibold tracking-tight break-after-avoid">
+                  <h2
+                    id="titulo-grilla"
+                    className="entrar font-display text-xl font-bold tracking-tight break-after-avoid"
+                    style={escalon(4)}
+                  >
                     Día por día
                   </h2>
                   <GrillaSemana key={desde} dias={grilla} diaEnCurso={resumen.diaEnCurso} />

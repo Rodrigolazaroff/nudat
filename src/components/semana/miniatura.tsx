@@ -36,7 +36,7 @@ export function Miniatura({
   if (!url || falloEn === url) {
     return (
       <span
-        className={`${className} grid shrink-0 place-items-center border border-dashed border-borde px-1 text-center text-[11px] leading-tight text-tinta-suave print:border-tinta-suave`}
+        className={`${className} grid shrink-0 place-items-center bg-hundido px-1 text-center text-[11px] leading-tight font-medium text-tinta-suave print:border print:border-dashed print:border-tinta-suave print:bg-transparent`}
       >
         Foto no disponible
       </span>
@@ -52,7 +52,7 @@ export function Miniatura({
       loading={eager ? "eager" : "lazy"}
       decoding="async"
       onError={() => setFalloEn(url)}
-      className={`${className} shrink-0 bg-fondo object-cover`}
+      className={`${className} shrink-0 bg-hundido object-cover print:bg-transparent`}
     />
   );
 }

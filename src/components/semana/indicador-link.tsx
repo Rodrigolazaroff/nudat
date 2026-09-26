@@ -14,3 +14,17 @@ export function IndicadorLink() {
     />
   );
 }
+
+// Para un .boton-circulo (con `relative`): un aro verde que gira alrededor mientras navega.
+// Con movimiento reducido queda quieto, pero se sigue viendo.
+export function IndicadorCirculo() {
+  const { pending } = useLinkStatus();
+  return (
+    <span
+      aria-hidden="true"
+      className={`pointer-events-none absolute -inset-1 rounded-full border-2 border-primario border-t-transparent transition-opacity duration-300 ease-premium motion-reduce:animate-none ${
+        pending ? "animate-spin opacity-100" : "opacity-0"
+      }`}
+    />
+  );
+}

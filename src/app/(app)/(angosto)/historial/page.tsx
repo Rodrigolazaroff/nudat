@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { obtenerPerfil } from "@/lib/perfil";
 import { createClient } from "@/lib/supabase/server";
@@ -57,38 +58,45 @@ export default async function PaginaHistorial() {
 
   return (
     <div className="pb-6">
-      <h1 className="text-xl font-semibold">Historial</h1>
-      <p className="mt-1 text-sm text-tinta-suave">
-        Cargaste algo en {diasConComidas} de los últimos {DIAS} días.
-      </p>
+      <div className="entrar">
+        <h1 className="titulo-pantalla text-[clamp(2.5rem,12vw,3.5rem)]">Historial</h1>
+        <p className="mt-2 font-medium text-tinta-suave">
+          Cargaste algo en <span className="tabular-nums">{diasConComidas}</span> de los últimos{" "}
+          {DIAS} días.
+        </p>
+      </div>
 
-      <ul className="mt-4 divide-y divide-borde overflow-hidden rounded-2xl border border-borde bg-superficie">
-        {dias.map(({ fecha, cantidad, faltan }) => (
-          <li key={fecha}>
-            <Link
-              href={`/?fecha=${fecha}`}
-              className="flex min-h-16 items-center gap-3 px-4 py-3 outline-none hover:bg-fondo focus-visible:bg-primario-suave"
-            >
-              <div className="min-w-0 flex-1">
-                <p className="truncate">
-                  <span className="font-medium">{nombreDia(fecha, hoy)}</span>
-                  <span className="text-tinta-suave"> · {diaYMes(fecha)}</span>
-                </p>
-                <Estado fecha={fecha} hoy={hoy} cantidad={cantidad} faltan={faltan} />
-              </div>
-              <span
-                className={`flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-medium tabular-nums ${
-                  cantidad > 0 ? "bg-primario-suave text-primario" : "bg-fondo text-tinta-suave"
-                }`}
+      <div className="bisel entrar mt-6" style={{ "--i": 1 } as CSSProperties}>
+        <ul className="bisel-nucleo divide-y divide-borde overflow-hidden">
+          {dias.map(({ fecha, cantidad, faltan }) => (
+            <li key={fecha}>
+              <Link
+                href={`/?fecha=${fecha}`}
+                className="group flex min-h-18 items-center gap-3 px-4 py-3 outline-none transition-colors duration-300 ease-premium hover:bg-hundido/50 focus-visible:bg-primario-suave focus-visible:ring-2 focus-visible:ring-primario focus-visible:ring-inset motion-reduce:transition-none"
               >
-                {cantidad}
-                <span className="sr-only">{cantidad === 1 ? " registro" : " registros"}</span>
-              </span>
-              <IconoDerecha className="size-5 shrink-0 text-tinta-suave/60" />
-            </Link>
-          </li>
-        ))}
-      </ul>
+                <span
+                  className={`flex size-11 shrink-0 items-center justify-center rounded-full font-display text-lg font-bold tabular-nums ${
+                    cantidad > 0
+                      ? "bg-primario-suave text-primario"
+                      : "bg-hundido text-tinta-suave"
+                  }`}
+                >
+                  {cantidad}
+                  <span className="sr-only">{cantidad === 1 ? " registro" : " registros"}</span>
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate">
+                    <span className="font-semibold tracking-tight">{nombreDia(fecha, hoy)}</span>
+                    <span className="font-medium text-tinta-suave"> · {diaYMes(fecha)}</span>
+                  </p>
+                  <Estado fecha={fecha} hoy={hoy} cantidad={cantidad} faltan={faltan} />
+                </div>
+                <IconoDerecha className="size-5 shrink-0 text-tinta-suave/50 transition-transform duration-500 ease-premium group-hover:translate-x-0.5 motion-reduce:transition-none" />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
@@ -108,12 +116,12 @@ function Estado({
     return fecha === hoy ? (
       <p className="text-sm text-tinta-suave">Todavía no cargaste nada</p>
     ) : (
-      <p className="text-sm text-acento">Sin nada cargado</p>
+      <p className="text-sm font-medium text-acento-tinta">Sin nada cargado</p>
     );
   }
   if (faltan.length === 0) {
     return (
-      <p className="text-sm text-primario">
+      <p className="text-sm font-medium text-primario">
         {fecha === hoy ? "Vas al día" : "Están las 4 comidas principales"}
       </p>
     );
@@ -121,7 +129,7 @@ function Estado({
   return (
     <p className="text-sm text-tinta-suave">
       {faltan.length === 1 ? "Falta" : "Faltan"}:{" "}
-      <span className="text-acento">{unirConY(faltan)}</span>
+      <span className="font-medium text-acento-tinta">{unirConY(faltan)}</span>
     </p>
   );
 }
